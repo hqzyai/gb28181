@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -30,6 +31,12 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType, @NotNull MediaType selectedContentType, @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response) {
+        // Binary responses must remain untouched. Wrapping a Resource or byte[] in
+        // WVPResult leaves the already-selected binary converter unable to write it.
+        if (body instanceof Resource || body instanceof byte[]) {
+            return body;
+        }
+
         // 排除api文档的接口，这个接口不需要统一
         String[] excludePath = {"/v3/api-docs","/api/v1","/index/hook","/api/video-"};
         for (String path : excludePath) {
