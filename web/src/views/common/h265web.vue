@@ -194,35 +194,60 @@ export default {
       }
     },
     screenshot: function() {
-      if (h265webPlayer[this._uid]) {
-        const canvas = document.createElement('canvas')
-        console.log(this.mediaInfo)
-        canvas.width = this.mediaInfo.meta.size.width
-        canvas.height = this.mediaInfo.meta.size.height
-        h265webPlayer[this._uid].snapshot(canvas) // snapshot to canvas
-
-        // 下载截图
+      try {
+        const canvas = this.renderCurrentFrame()
         const link = document.createElement('a')
         link.download = 'screenshot.png'
         link.href = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
         link.click()
+      } catch (error) {
+        this.$message.error(error.message || '当前画面截图失败')
       }
     },
     captureFrame(quality = 0.78) {
-      const player = h265webPlayer[this._uid]
-      const size = this.mediaInfo && this.mediaInfo.meta && this.mediaInfo.meta.size
-      if (!player || !size || !size.width || !size.height) {
-        throw new Error('H265 播放器尚未准备好抽帧')
+      const canvas = this.renderCurrentFrame()
+      const normalizedQuality = Math.min(1, Math.max(0.1, Number(quality) || 0.78))
+      const dataUrl = canvas.toDataURL('image/jpeg', normalizedQuality)
+      if (!dataUrl || dataUrl.length < 128) {
+        throw new Error('H265 播放器没有返回有效视频帧')
       }
-      const canvas = document.createElement('canvas')
-      canvas.width = size.width
-      canvas.height = size.height
-      player.snapshot(canvas)
       return {
-        dataUrl: canvas.toDataURL('image/jpeg', quality),
+        dataUrl,
         width: canvas.width,
         height: canvas.height
       }
+    },
+    renderCurrentFrame() {
+      const playerBox = this.$refs.playerBox
+      if (!playerBox || !h265webPlayer[this._uid] || !this.playing) {
+        throw new Error('H265 播放器尚未准备好抽帧')
+      }
+
+      const videos = Array.from(playerBox.querySelectorAll('video'))
+      const video = videos.find(item => item.readyState >= 2 && item.videoWidth >= 16 && item.videoHeight >= 16)
+      const canvases = Array.from(playerBox.querySelectorAll('canvas'))
+        .filter(item => item.width >= 16 && item.height >= 16)
+        .sort((left, right) => (right.width * right.height) - (left.width * left.height))
+      const source = video || canvases[0]
+      const width = video ? video.videoWidth : (source && source.width)
+      const height = video ? video.videoHeight : (source && source.height)
+      if (!source || !width || !height) {
+        throw new Error('H265 播放器当前画面尚未就绪')
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d', { alpha: false })
+      if (!context) {
+        throw new Error('浏览器无法创建视频抽帧画布')
+      }
+      try {
+        context.drawImage(source, 0, 0, width, height)
+      } catch (error) {
+        throw new Error('H265 播放器当前画面抽取失败')
+      }
+      return canvas
     },
     playBtnClick: function(event) {
       this.play(this.localVideoUrl || this.videoUrl)

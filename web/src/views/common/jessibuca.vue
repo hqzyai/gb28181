@@ -248,21 +248,27 @@ export default {
       if (!player || !this.playing) {
         throw new Error('视频尚未开始播放')
       }
-      const canvas = this.getVideoElement()
-      let dataUrl = await Promise.resolve(player.screenshot('ai-frame', 'jpeg', quality, 'base64'))
-      if (typeof dataUrl !== 'string' || !dataUrl) {
-        if (!canvas || !canvas.width || !canvas.height) {
-          throw new Error('当前播放器暂时无法抽帧')
-        }
-        dataUrl = canvas.toDataURL('image/jpeg', quality)
+      const sourceCanvas = this.getVideoElement()
+      if (!sourceCanvas || !sourceCanvas.width || !sourceCanvas.height) {
+        throw new Error('当前播放器暂时无法抽帧')
       }
-      if (!dataUrl.startsWith('data:')) {
-        dataUrl = 'data:image/jpeg;base64,' + dataUrl
+      const canvas = document.createElement('canvas')
+      canvas.width = sourceCanvas.width
+      canvas.height = sourceCanvas.height
+      const context = canvas.getContext('2d', { alpha: false })
+      if (!context) {
+        throw new Error('浏览器无法创建视频抽帧画布')
+      }
+      context.drawImage(sourceCanvas, 0, 0, canvas.width, canvas.height)
+      const normalizedQuality = Math.min(1, Math.max(0.1, Number(quality) || 0.78))
+      const dataUrl = canvas.toDataURL('image/jpeg', normalizedQuality)
+      if (!dataUrl || dataUrl.length < 128) {
+        throw new Error('当前播放器没有返回有效视频帧')
       }
       return {
         dataUrl,
-        width: canvas && canvas.width ? canvas.width : 0,
-        height: canvas && canvas.height ? canvas.height : 0
+        width: canvas.width,
+        height: canvas.height
       }
     },
     mute: function() {
