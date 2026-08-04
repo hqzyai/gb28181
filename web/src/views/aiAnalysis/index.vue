@@ -93,7 +93,7 @@
           </div>
 
           <div class="record-description">
-            <h4>历史检测记录</h4>
+            <h4>历史识别记录</h4>
             <div class="record-meta-grid">
               <div class="record-meta-item">
                 <span>工地：</span>
@@ -757,11 +757,8 @@ export default {
 
 .record-meta-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 8px;
-  padding: 10px;
-  border-radius: 7px;
-  background: #090b0e;
 }
 
 .record-meta-item {
@@ -771,20 +768,21 @@ export default {
   min-height: 48px;
   padding: 9px 11px;
   border-radius: 6px;
-  background: #15171a;
+  border: 1px solid #e5e9f0;
+  background: #f7f9fc;
   line-height: 1.4;
 }
 
 .record-meta-item span {
   flex: none;
   margin-right: 10px;
-  color: #aeb4bd;
+  color: #606266;
   font-size: 12px;
 }
 
 .record-meta-item strong {
   min-width: 0;
-  color: #fff;
+  color: #303133;
   text-align: right;
   word-break: break-word;
   font-weight: 500;
