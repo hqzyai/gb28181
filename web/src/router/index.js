@@ -67,6 +67,17 @@ export const constantRoutes = [
     }]
   },
   {
+    path: '/ai-analysis',
+    component: Layout,
+    redirect: '/ai-analysis',
+    children: [{
+      path: '',
+      name: 'AiAnalysis',
+      component: () => import('@/views/aiAnalysis/index'),
+      meta: { title: 'AI安全识别', icon: 'el-icon-cpu' }
+    }]
+  },
+  {
     path: '/channel',
     component: Layout,
     redirect: '/channel',

@@ -243,6 +243,28 @@ export default {
         jessibucaPlayer[this._uid].screenshot()
       }
     },
+    async captureFrame(quality = 0.78) {
+      const player = jessibucaPlayer[this._uid]
+      if (!player || !this.playing) {
+        throw new Error('视频尚未开始播放')
+      }
+      const canvas = this.getVideoElement()
+      let dataUrl = await Promise.resolve(player.screenshot('ai-frame', 'jpeg', quality, 'base64'))
+      if (typeof dataUrl !== 'string' || !dataUrl) {
+        if (!canvas || !canvas.width || !canvas.height) {
+          throw new Error('当前播放器暂时无法抽帧')
+        }
+        dataUrl = canvas.toDataURL('image/jpeg', quality)
+      }
+      if (!dataUrl.startsWith('data:')) {
+        dataUrl = 'data:image/jpeg;base64,' + dataUrl
+      }
+      return {
+        dataUrl,
+        width: canvas && canvas.width ? canvas.width : 0,
+        height: canvas && canvas.height ? canvas.height : 0
+      }
+    },
     mute: function() {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].mute()

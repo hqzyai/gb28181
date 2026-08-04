@@ -208,6 +208,22 @@ export default {
         link.click()
       }
     },
+    captureFrame(quality = 0.78) {
+      const player = h265webPlayer[this._uid]
+      const size = this.mediaInfo && this.mediaInfo.meta && this.mediaInfo.meta.size
+      if (!player || !size || !size.width || !size.height) {
+        throw new Error('H265 播放器尚未准备好抽帧')
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = size.width
+      canvas.height = size.height
+      player.snapshot(canvas)
+      return {
+        dataUrl: canvas.toDataURL('image/jpeg', quality),
+        width: canvas.width,
+        height: canvas.height
+      }
+    },
     playBtnClick: function(event) {
       this.play(this.localVideoUrl || this.videoUrl)
     },

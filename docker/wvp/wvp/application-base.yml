@@ -37,6 +37,24 @@ server:
   ssl:
     # [可选] 是否开启HTTPS访问
     enabled: false
+
+# AI 视频帧识别。密钥必须通过环境变量注入，禁止写入配置文件或前端代码。
+ai-analysis:
+  enabled: ${AI_ANALYSIS_ENABLED:false}
+  api-url: ${AI_ANALYSIS_API_URL:}
+  api-key: ${AI_ANALYSIS_API_KEY:}
+  model: ${AI_ANALYSIS_MODEL:}
+  temperature: ${AI_ANALYSIS_TEMPERATURE:1.0}
+  max-output-tokens: ${AI_ANALYSIS_MAX_OUTPUT_TOKENS:2048}
+  max-image-bytes: ${AI_ANALYSIS_MAX_IMAGE_BYTES:3145728}
+  max-provider-response-bytes: ${AI_ANALYSIS_MAX_PROVIDER_RESPONSE_BYTES:1048576}
+  max-concurrent: ${AI_ANALYSIS_MAX_CONCURRENT:2}
+  min-request-interval-seconds: ${AI_ANALYSIS_MIN_REQUEST_INTERVAL_SECONDS:3}
+  connect-timeout-seconds: ${AI_ANALYSIS_CONNECT_TIMEOUT_SECONDS:10}
+  read-timeout-seconds: ${AI_ANALYSIS_READ_TIMEOUT_SECONDS:180}
+  default-interval-seconds: ${AI_ANALYSIS_INTERVAL_SECONDS:10}
+  review-threshold: ${AI_ANALYSIS_REVIEW_THRESHOLD:0.60}
+  alert-threshold: ${AI_ANALYSIS_ALERT_THRESHOLD:0.85}
 # 作为28181服务器的配置
 sip:
   # [必须修改] 本机的IP

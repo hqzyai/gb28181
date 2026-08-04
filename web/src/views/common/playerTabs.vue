@@ -163,6 +163,13 @@ export default {
         return player.screenshot()
       }
     },
+    async captureFrame(quality = 0.78) {
+      const player = this.$refs[this.activePlayer]
+      if (!player || !player.captureFrame) {
+        throw new Error('当前播放器不支持 AI 抽帧')
+      }
+      return Promise.resolve(player.captureFrame(quality))
+    },
     getVideoRect() {
       const player = this.$refs[this.activePlayer]
       return player && player.getVideoRect ? player.getVideoRect() : null

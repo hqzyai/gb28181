@@ -53,7 +53,7 @@ service.interceptors.response.use(
   },
   error => {
     console.log(error) // for debug
-    if (error.response.status === 401) {
+    if (error.response && error.response.status === 401) {
       if (!showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
         // to re-login
         showLoginConfirm = true
@@ -79,7 +79,7 @@ service.interceptors.response.use(
       if (!store.getters.showConfirmBoxForLoginLose) {
         return
       }
-      let data = error.response.data
+      const data = error.response && error.response.data
       if (data && data.msg) {
         Message.error({
           message: data.msg,
@@ -92,7 +92,7 @@ service.interceptors.response.use(
         })
       }
     }
-    // return Promise.reject(error)
+    return Promise.reject(error)
   }
 )
 

@@ -80,6 +80,22 @@ export default {
     stop: function() {
       this.pause()
     },
+    captureFrame(quality = 0.78) {
+      const video = this.getVideoElement()
+      if (!video || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+        throw new Error('WebRTC 视频尚未准备好抽帧')
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const context = canvas.getContext('2d')
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+      return {
+        dataUrl: canvas.toDataURL('image/jpeg', quality),
+        width: canvas.width,
+        height: canvas.height
+      }
+    },
     eventcallbacK: function(type, message) {
       console.log('player 事件回调')
       console.log(type)
