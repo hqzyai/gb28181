@@ -1,0 +1,6 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# Reuse the verified runtime image and replace only the application artifact.
+# This supports reproducible, offline release builds on production hosts.
+COPY target/wvp-pro-*.jar /opt/wvp/wvp.jar

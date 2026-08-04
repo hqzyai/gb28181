@@ -59,6 +59,8 @@ ai-analysis:
   demo-enabled: ${AI_ANALYSIS_DEMO_ENABLED:false}
   demo-channel-name: ${AI_ANALYSIS_DEMO_CHANNEL_NAME:归林驿-东北角作业区}
   demo-site-name: ${AI_ANALYSIS_DEMO_SITE_NAME:雄安湾生态基地}
+  demo-university-channel-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_CHANNEL_NAME:大学城二期四标-加工厂西南作业区}
+  demo-university-site-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_SITE_NAME:大学城二期四标}
 # 作为28181服务器的配置
 sip:
   # [必须修改] 本机的IP

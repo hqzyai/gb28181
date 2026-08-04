@@ -33,6 +33,8 @@ public class AiAnalysisConfig {
     private boolean demoEnabled = false;
     private String demoChannelName = "归林驿-东北角作业区";
     private String demoSiteName = "雄安湾生态基地";
+    private String demoUniversityChannelName = "大学城二期四标-加工厂西南作业区";
+    private String demoUniversitySiteName = "大学城二期四标";
 
     public boolean isConfigured() {
         return enabled
