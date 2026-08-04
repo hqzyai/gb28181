@@ -430,6 +430,7 @@ public class AiAnalysisService {
         result.setChannelName(trimToLength(request.getChannelName(), 200));
         result.setCapturedAt(trimToLength(request.getCapturedAt(), 64));
         result.setAnalyzedAt(OffsetDateTime.now(CHINA_ZONE).format(TIME_FORMATTER));
+        result.setVideoTimeSeconds(normalizeVideoTime(request.getVideoTimeSeconds()));
         result.setModel(config.getModel());
         result.setImageWidth(frame.width());
         result.setImageHeight(frame.height());
@@ -438,16 +439,19 @@ public class AiAnalysisService {
         result.setInputTokens(response.inputTokens());
         result.setOutputTokens(response.outputTokens());
         result.setTotalTokens(response.totalTokens());
+        result.setSource("LIVE");
 
         if (detections.isEmpty()) {
             result.setStatus("正常");
             result.setRiskName("未识别到明显风险");
+            result.setConfidence(0D);
             result.setSummary("当前帧未识别到置信度达到阈值的施工安全风险，请结合后续视频帧持续复核。");
             result.setTips(List.of("继续观察后续画面变化", "对遮挡或远距离目标建议人工复核"));
             return result;
         }
 
         AiDetection top = detections.get(0);
+        result.setConfidence(top.getConfidence());
         boolean hasAlert = detections.stream().anyMatch(item -> "自动告警".equals(item.getStatus()));
         long reviewCount = detections.stream().filter(item -> "人工复核".equals(item.getStatus())).count();
         result.setStatus(hasAlert ? "自动告警" : "人工复核");
@@ -458,6 +462,13 @@ public class AiAnalysisService {
         );
         result.setTips(tipsFor(top.getType()));
         return result;
+    }
+
+    private static Double normalizeVideoTime(Double value) {
+        if (value == null || !Double.isFinite(value) || value < 0D) {
+            return null;
+        }
+        return Math.round(value * 100D) / 100D;
     }
 
     private static List<String> tipsFor(String riskType) {

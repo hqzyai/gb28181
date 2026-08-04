@@ -29,6 +29,10 @@ public class AiAnalysisConfig {
     private int defaultIntervalSeconds = 10;
     private double reviewThreshold = 0.60D;
     private double alertThreshold = 0.85D;
+    private String historyDirectory = "data/ai-history";
+    private boolean demoEnabled = false;
+    private String demoChannelName = "归林驿-东北角作业区";
+    private String demoSiteName = "雄安湾生态基地";
 
     public boolean isConfigured() {
         return enabled
@@ -45,6 +49,7 @@ public class AiAnalysisConfig {
                 && readTimeoutSeconds >= 1 && readTimeoutSeconds <= 600
                 && defaultIntervalSeconds >= minRequestIntervalSeconds && defaultIntervalSeconds <= 3600
                 && reviewThreshold >= 0D && reviewThreshold <= 1D
-                && alertThreshold >= reviewThreshold && alertThreshold <= 1D;
+                && alertThreshold >= reviewThreshold && alertThreshold <= 1D
+                && historyDirectory != null && !historyDirectory.isBlank();
     }
 }

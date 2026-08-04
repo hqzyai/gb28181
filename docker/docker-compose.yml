@@ -101,6 +101,7 @@ services:
       - ./wvp/config:/opt/wvp/config
       - ./wvp/wvp/:/opt/ylcx/wvp/
       - ./logs/wvp:/opt/wvp/logs/
+      - ./volumes/ai-history:/opt/wvp/data/ai-history
     environment:
       TZ: "Asia/Shanghai"
       # docker env
@@ -150,6 +151,10 @@ services:
       AI_ANALYSIS_INTERVAL_SECONDS: ${AI_ANALYSIS_INTERVAL_SECONDS:-10}
       AI_ANALYSIS_REVIEW_THRESHOLD: ${AI_ANALYSIS_REVIEW_THRESHOLD:-0.60}
       AI_ANALYSIS_ALERT_THRESHOLD: ${AI_ANALYSIS_ALERT_THRESHOLD:-0.85}
+      AI_ANALYSIS_HISTORY_DIR: /opt/wvp/data/ai-history
+      AI_ANALYSIS_DEMO_ENABLED: ${AI_ANALYSIS_DEMO_ENABLED:-false}
+      AI_ANALYSIS_DEMO_CHANNEL_NAME: ${AI_ANALYSIS_DEMO_CHANNEL_NAME:-归林驿-东北角作业区}
+      AI_ANALYSIS_DEMO_SITE_NAME: ${AI_ANALYSIS_DEMO_SITE_NAME:-雄安湾生态基地}
 
       RecordSip: ${RecordSip}
       RecordPushLive: ${RecordPushLive}

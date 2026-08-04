@@ -18,3 +18,21 @@ export function analyzeVideoFrame(data) {
     maxBodyLength: 5 * 1024 * 1024
   })
 }
+
+export function getAiHistory(channelId, page) {
+  return request({
+    method: 'get',
+    url: '/api/ai/history',
+    params: { channelId, page },
+    timeout: 15000
+  })
+}
+
+export function getAiHistoryImage(analysisId) {
+  return request({
+    method: 'get',
+    url: '/api/ai/history/' + encodeURIComponent(analysisId) + '/image',
+    responseType: 'blob',
+    timeout: 30000
+  })
+}

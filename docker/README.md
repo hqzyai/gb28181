@@ -21,9 +21,18 @@ AI_ANALYSIS_MODEL=replace-with-a-vision-capable-model
 AI_ANALYSIS_INTERVAL_SECONDS=10
 AI_ANALYSIS_MAX_CONCURRENT=2
 AI_ANALYSIS_MIN_REQUEST_INTERVAL_SECONDS=3
+AI_ANALYSIS_DEMO_ENABLED=false
 ```
 
 必须使用新签发且从未出现在源码、文档、日志或截图中的 Key。模型服务需要兼容 OpenAI 多模态 `chat/completions` 请求。
+
+识别结果按摄像头通道写入 `wvp_ai_analysis_history`，截图写入独立数据卷
+`docker/volumes/ai-history`，容器重建或页面刷新不会丢失。历史接口固定每页 10 条，
+数据库和图片目录不设置记录数量上限；生产环境应把该目录放在数据盘并纳入备份、容量告警和保留策略。
+
+仓库附带的“归林驿”演示数据默认关闭。仅在演示环境设置
+`AI_ANALYSIS_DEMO_ENABLED=true` 时，服务会把 8 张演示截图幂等导入名称为
+`归林驿-东北角作业区` 的通道；重复启动不会生成重复记录。
 
 使用`docker compose up -d --build --force-recreate`强制重新构建所有服务的镜像并删除旧容器重新运行
 

@@ -65,6 +65,10 @@ ai-analysis:
     default-interval-seconds: ${AI_ANALYSIS_INTERVAL_SECONDS:10}
     review-threshold: ${AI_ANALYSIS_REVIEW_THRESHOLD:0.60}
     alert-threshold: ${AI_ANALYSIS_ALERT_THRESHOLD:0.85}
+    history-directory: ${AI_ANALYSIS_HISTORY_DIR:/opt/wvp/data/ai-history}
+    demo-enabled: ${AI_ANALYSIS_DEMO_ENABLED:false}
+    demo-channel-name: ${AI_ANALYSIS_DEMO_CHANNEL_NAME:归林驿-东北角作业区}
+    demo-site-name: ${AI_ANALYSIS_DEMO_SITE_NAME:雄安湾生态基地}
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，

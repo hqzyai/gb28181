@@ -57,6 +57,7 @@
             :player-type="playerType"
             :show-tab="false"
             :show-button="true"
+            @playTimeChange="handlePlayTimeChange"
           />
           <div v-if="running || analyzing" class="analysis-running-badge">
             <span class="pulse-dot" />
@@ -91,21 +92,40 @@
             </div>
           </div>
 
-          <div class="result-summary">
-            <h4>{{ latestResult.riskName }}</h4>
-            <p>{{ latestResult.summary }}</p>
-            <div v-if="latestResult.detections.length" class="detection-list">
-              <div v-for="(item, index) in latestResult.detections" :key="index" class="detection-item">
-                <div>
-                  <el-tag size="mini" :type="item.status === '自动告警' ? 'danger' : 'warning'">{{ item.status }}</el-tag>
-                  <strong>{{ item.type }}</strong>
-                </div>
-                <span>{{ Math.round(item.confidence * 100) }}%</span>
+          <div class="record-description">
+            <h4>历史检测记录</h4>
+            <div class="record-meta-grid">
+              <div class="record-meta-item">
+                <span>工地：</span>
+                <strong>{{ latestResult.siteName || latestResult.channelName }}</strong>
+              </div>
+              <div class="record-meta-item">
+                <span>检测时间：</span>
+                <strong>{{ formatTime(latestResult.analyzedAt) }}</strong>
+              </div>
+              <div class="record-meta-item">
+                <span>风险类型：</span>
+                <strong>{{ latestResult.riskName }}</strong>
+              </div>
+              <div class="record-meta-item">
+                <span>处理状态：</span>
+                <strong>{{ latestResult.status }}</strong>
+              </div>
+              <div class="record-meta-item">
+                <span>置信度：</span>
+                <strong>{{ formatConfidence(latestResult.confidence) }}</strong>
+              </div>
+              <div class="record-meta-item">
+                <span>视频时间：</span>
+                <strong>{{ formatVideoTime(latestResult.videoTimeSeconds) }}</strong>
               </div>
             </div>
-            <ul class="tips-list">
-              <li v-for="tip in latestResult.tips" :key="tip">{{ tip }}</li>
-            </ul>
+            <div class="result-guidance">
+              <p>{{ latestResult.summary }}</p>
+              <ul v-if="latestResult.tips && latestResult.tips.length" class="tips-list">
+                <li v-for="tip in latestResult.tips" :key="tip">{{ tip }}</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -118,25 +138,59 @@
 
       <section class="history-section panel-card">
         <div class="history-title">
-          <h3>本次识别记录</h3>
-          <span>最多保留最近 {{ historyLimit }} 帧，离开页面后清空</span>
+          <h3>历史识别记录</h3>
+          <span>{{ selectedChannelId ? '当前摄像头共 ' + historyTotal + ' 条，每页 10 条' : '请选择摄像头查看独立历史记录' }}</span>
         </div>
-        <div v-if="history.length" class="history-list">
-          <button
-            v-for="item in history"
-            :key="item.result.analysisId"
-            type="button"
-            class="history-card"
-            :class="{ active: latestResult && item.result.analysisId === latestResult.analysisId }"
-            @click="selectHistory(item)"
+        <div class="history-table-wrap" v-loading="historyLoading">
+          <el-table
+            :data="history"
+            size="mini"
+            stripe
+            :row-class-name="historyRowClass"
+            @row-click="selectHistory"
           >
-            <img :src="item.frame.dataUrl" alt="历史识别帧">
-            <span class="history-status" :class="historyStatusClass(item.result.status)">{{ item.result.status }}</span>
-            <strong>{{ item.result.riskName }}</strong>
-            <small>{{ formatTime(item.result.analyzedAt) }}</small>
-          </button>
+            <el-table-column label="截图" width="108">
+              <template slot-scope="scope">
+                <img v-if="scope.row.imageObjectUrl" class="history-thumb" :src="scope.row.imageObjectUrl" alt="历史识别帧">
+                <span v-else class="history-image-placeholder">加载中</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="检测时间" min-width="168">
+              <template slot-scope="scope">{{ formatTime(scope.row.analyzedAt) }}</template>
+            </el-table-column>
+            <el-table-column prop="siteName" label="工地" min-width="150" show-overflow-tooltip />
+            <el-table-column prop="riskName" label="风险类型" min-width="190" show-overflow-tooltip />
+            <el-table-column label="处理状态" width="110">
+              <template slot-scope="scope">
+                <el-tag size="mini" :type="statusTagType(scope.row.status)">{{ scope.row.status }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="置信度" width="90">
+              <template slot-scope="scope">{{ formatConfidence(scope.row.confidence) }}</template>
+            </el-table-column>
+            <el-table-column label="视频时间" width="100">
+              <template slot-scope="scope">{{ formatVideoTime(scope.row.videoTimeSeconds) }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="72" fixed="right">
+              <template slot-scope="scope">
+                <el-button type="text" size="mini" @click.stop="selectHistory(scope.row)">查看</el-button>
+              </template>
+            </el-table-column>
+            <template slot="empty">
+              <span>{{ selectedChannelId ? '当前摄像头暂无历史识别记录' : '请先选择摄像头' }}</span>
+            </template>
+          </el-table>
         </div>
-        <div v-else class="history-empty">暂无识别记录</div>
+        <div v-if="historyTotal > 0" class="history-pagination">
+          <el-pagination
+            background
+            layout="total, prev, pager, next"
+            :current-page="historyPage"
+            :page-size="historyPageSize"
+            :total="historyTotal"
+            @current-change="handleHistoryPageChange"
+          />
+        </div>
       </section>
     </main>
 
@@ -155,7 +209,7 @@
 <script>
 import DeviceTree from '@/views/common/DeviceTree.vue'
 import PlayerTabs from '@/views/common/playerTabs.vue'
-import { analyzeVideoFrame, getAiAnalysisConfig } from '@/api/aiAnalysis'
+import { analyzeVideoFrame, getAiAnalysisConfig, getAiHistory, getAiHistoryImage } from '@/api/aiAnalysis'
 
 export default {
   name: 'AiAnalysis',
@@ -176,10 +230,15 @@ export default {
       analyzing: false,
       analysisTimer: null,
       requestGeneration: 0,
+      historyRequestId: 0,
+      currentVideoTimeMs: null,
       latestFrame: null,
       latestResult: null,
       history: [],
-      historyLimit: 10
+      historyLoading: false,
+      historyPage: 1,
+      historyPageSize: 10,
+      historyTotal: 0
     }
   },
   created() {
@@ -192,6 +251,7 @@ export default {
   beforeDestroy() {
     this.stopAnalysis(false)
     this.requestGeneration += 1
+    this.revokeHistoryUrls()
     const player = this.$refs.player
     if (player && player.destroy) player.destroy()
   },
@@ -217,11 +277,21 @@ export default {
       this.stopAnalysis(false)
       this.requestGeneration += 1
       this.selectedChannelId = String(channelId || '')
-      this.selectedChannelName = channel && channel.name ? channel.name : this.selectedChannelId
+      this.selectedChannelName = channel && (channel.name || channel.gbName)
+        ? (channel.name || channel.gbName)
+        : this.selectedChannelId
       this.streamInfo = null
       this.streamError = ''
       this.streamLoading = true
+      this.currentVideoTimeMs = null
+      this.latestFrame = null
+      this.latestResult = null
+      this.revokeHistoryUrls()
+      this.history = []
+      this.historyPage = 1
+      this.historyTotal = 0
       const generation = this.requestGeneration
+      this.loadHistory(1, generation)
       try {
         const data = await this.$store.dispatch('commonChanel/playChannel', channelId)
         if (generation !== this.requestGeneration || this._isBeingDestroyed) return
@@ -276,14 +346,15 @@ export default {
           imageData: frame.dataUrl,
           imageWidth: frame.width,
           imageHeight: frame.height,
-          capturedAt: new Date().toISOString()
+          capturedAt: new Date().toISOString(),
+          videoTimeSeconds: this.currentVideoTimeMs === null
+            ? null
+            : Math.round(this.currentVideoTimeMs) / 1000
         })
         if (generation !== this.requestGeneration || !response || !response.data) return
-        const item = { frame, result: response.data }
         this.latestFrame = frame
         this.latestResult = response.data
-        this.history.unshift(item)
-        if (this.history.length > this.historyLimit) this.history.length = this.historyLimit
+        await this.loadHistory(1, generation, response.data.analysisId)
       } catch (error) {
         const message = this.errorMessage(error)
         if (!silent || this.running) this.$message.error('AI 识别失败：' + message)
@@ -326,9 +397,75 @@ export default {
         image.src = frame.dataUrl
       })
     },
+    async loadHistory(page = 1, generation = this.requestGeneration, preferredAnalysisId = '') {
+      if (!this.selectedChannelId) return
+      const historyRequestId = ++this.historyRequestId
+      this.historyLoading = true
+      const nextHistory = []
+      try {
+        const response = await getAiHistory(this.selectedChannelId, page)
+        if (generation !== this.requestGeneration || historyRequestId !== this.historyRequestId || !response || !response.data) return
+        const data = response.data
+        const records = Array.isArray(data.list) ? data.list : []
+        const loadedHistory = await Promise.all(records.map(async record => {
+          let imageObjectUrl = ''
+          try {
+            const imageResponse = await getAiHistoryImage(record.analysisId)
+            const imageBlob = imageResponse && imageResponse.data instanceof Blob ? imageResponse.data : imageResponse
+            if (imageBlob instanceof Blob) {
+              imageObjectUrl = URL.createObjectURL(imageBlob)
+            }
+          } catch (error) {
+            imageObjectUrl = ''
+          }
+          return Object.assign({}, record, { imageObjectUrl })
+        }))
+        nextHistory.push(...loadedHistory)
+        if (generation !== this.requestGeneration || historyRequestId !== this.historyRequestId) {
+          this.revokeHistoryUrls(nextHistory)
+          return
+        }
+        this.revokeHistoryUrls()
+        this.history = nextHistory
+        this.historyPage = Number(data.page) || page
+        this.historyPageSize = Number(data.pageSize) || 10
+        this.historyTotal = Number(data.total) || 0
+        const selected = nextHistory.find(item => item.analysisId === preferredAnalysisId) || nextHistory[0]
+        if (selected) {
+          this.selectHistory(selected)
+        } else {
+          this.latestFrame = null
+          this.latestResult = null
+        }
+      } catch (error) {
+        if (generation === this.requestGeneration && historyRequestId === this.historyRequestId) {
+          this.$message.error('历史识别记录加载失败：' + this.errorMessage(error))
+        }
+      } finally {
+        if (generation === this.requestGeneration && historyRequestId === this.historyRequestId) this.historyLoading = false
+      }
+    },
+    handleHistoryPageChange(page) {
+      this.loadHistory(page)
+    },
+    handlePlayTimeChange(value) {
+      const milliseconds = Number(value)
+      this.currentVideoTimeMs = Number.isFinite(milliseconds) && milliseconds >= 0 ? milliseconds : null
+    },
     selectHistory(item) {
-      this.latestFrame = item.frame
-      this.latestResult = item.result
+      if (!item) return
+      this.latestFrame = { dataUrl: item.imageObjectUrl || item.imageUrl }
+      this.latestResult = item
+    },
+    revokeHistoryUrls(items = this.history) {
+      for (const item of items || []) {
+        if (item && item.imageObjectUrl && item.imageObjectUrl.indexOf('blob:') === 0) {
+          URL.revokeObjectURL(item.imageObjectUrl)
+        }
+      }
+    },
+    historyRowClass({ row }) {
+      return this.latestResult && row.analysisId === this.latestResult.analysisId ? 'selected-history-row' : ''
     },
     boxStyle(box, result) {
       const width = result.imageWidth || 1
@@ -345,13 +482,22 @@ export default {
       if (status === '人工复核') return 'warning'
       return 'success'
     },
-    historyStatusClass(status) {
-      return status === '自动告警' ? 'danger' : (status === '人工复核' ? 'warning' : 'success')
+    formatConfidence(value) {
+      const confidence = Number(value)
+      return Number.isFinite(confidence) ? Math.round(confidence * 100) + '%' : '--'
+    },
+    formatVideoTime(value) {
+      if (value === null || value === undefined || value === '') return '--'
+      const seconds = Number(value)
+      return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + 's' : '--'
     },
     formatTime(value) {
       if (!value) return ''
       const date = new Date(value)
-      return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false })
+      if (Number.isNaN(date.getTime())) return value
+      const pad = number => String(number).padStart(2, '0')
+      return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' +
+        pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds())
     },
     errorMessage(error) {
       if (!error) return '未知错误'
@@ -387,9 +533,10 @@ export default {
   padding: 14px;
   display: grid;
   grid-template-columns: minmax(480px, 1.45fr) minmax(360px, 1fr);
-  grid-template-rows: minmax(390px, 1fr) 220px;
+  grid-template-rows: 480px auto;
   gap: 14px;
-  overflow: hidden;
+  overflow-y: auto;
+  align-content: start;
 }
 
 .panel-card {
@@ -598,41 +745,60 @@ export default {
   background: #d48806;
 }
 
-.result-summary {
+.record-description {
   padding: 12px 2px 0;
 }
 
-.result-summary h4 {
-  margin: 0 0 7px;
+.record-description h4 {
+  margin: 0 0 10px;
   color: #303133;
   font-size: 16px;
 }
 
-.result-summary > p {
-  margin: 0 0 10px;
-  color: #606266;
-  line-height: 1.6;
+.record-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border-radius: 7px;
+  background: #090b0e;
 }
 
-.detection-list {
+.record-meta-item {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.detection-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 7px 9px;
-  background: #f7f9fc;
-  border-radius: 4px;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: #15171a;
+  line-height: 1.4;
+}
+
+.record-meta-item span {
+  flex: none;
+  margin-right: 10px;
+  color: #aeb4bd;
   font-size: 12px;
 }
 
-.detection-item strong {
-  margin-left: 6px;
+.record-meta-item strong {
+  min-width: 0;
+  color: #fff;
+  text-align: right;
+  word-break: break-word;
   font-weight: 500;
+  font-size: 13px;
+}
+
+.result-guidance {
+  margin-top: 10px;
+}
+
+.result-guidance > p {
+  margin: 0;
+  color: #606266;
+  line-height: 1.6;
 }
 
 .tips-list {
@@ -649,6 +815,7 @@ export default {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 .history-title {
@@ -657,80 +824,44 @@ export default {
   padding-bottom: 7px;
 }
 
-.history-list {
-  flex: 1;
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  overflow-x: auto;
+.history-table-wrap {
+  padding: 0 12px;
 }
 
-.history-card {
-  position: relative;
-  width: 190px;
-  min-width: 190px;
-  padding: 0 0 7px;
-  border: 1px solid #e4e7ed;
-  border-radius: 5px;
-  background: #fff;
-  overflow: hidden;
+.history-table-wrap >>> .el-table__row {
   cursor: pointer;
-  text-align: left;
 }
 
-.history-card.active {
-  border-color: #409eff;
-  box-shadow: 0 0 0 1px #409eff inset;
+.history-table-wrap >>> .selected-history-row > td {
+  background: #ecf5ff !important;
 }
 
-.history-card img {
-  width: 100%;
-  height: 96px;
+.history-thumb {
+  width: 82px;
+  height: 44px;
   display: block;
+  border-radius: 3px;
   object-fit: cover;
   background: #111;
 }
 
-.history-card strong,
-.history-card small {
-  display: block;
-  padding: 0 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.history-card strong {
-  margin-top: 7px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.history-card small {
-  margin-top: 3px;
-  color: #909399;
-}
-
-.history-status {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  padding: 2px 5px;
-  border-radius: 3px;
-  color: #fff;
-  font-size: 11px;
-}
-
-.history-status.danger { background: #f5222d; }
-.history-status.warning { background: #d48806; }
-.history-status.success { background: #24a148; }
-
-.history-empty {
-  flex: 1;
+.history-image-placeholder {
+  width: 82px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 3px;
+  background: #f2f4f7;
   color: #909399;
+  font-size: 11px;
+}
+
+.history-pagination {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 14px 14px;
+  border-top: 1px solid #edf0f5;
 }
 
 .config-alert {
@@ -755,7 +886,7 @@ export default {
 
   .analysis-workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: 430px auto 210px;
+    grid-template-rows: 430px auto auto;
     overflow-y: auto;
   }
 

@@ -10,4 +10,5 @@ public class AiFrameRequest {
     private Integer imageWidth;
     private Integer imageHeight;
     private String capturedAt;
+    private Double videoTimeSeconds;
 }

@@ -501,7 +501,10 @@ export default {
     channelLstClickHandler: function(data) {
       this.$emit('clickEvent', {
         leaf: true,
-        id: data.gbId
+        id: data.gbId,
+        name: data.gbName,
+        gbName: data.gbName,
+        gbDeviceId: data.gbDeviceId
       })
     },
     contextmenuEventHandlerForLi(event, data) {
