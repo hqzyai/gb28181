@@ -115,10 +115,6 @@
                 <span>置信度：</span>
                 <strong>{{ formatConfidence(latestResult.confidence) }}</strong>
               </div>
-              <div class="record-meta-item">
-                <span>视频时间：</span>
-                <strong>{{ formatVideoTime(latestResult.videoTimeSeconds) }}</strong>
-              </div>
             </div>
             <div class="result-guidance">
               <p>{{ latestResult.summary }}</p>
@@ -167,9 +163,6 @@
             </el-table-column>
             <el-table-column label="置信度" width="90">
               <template slot-scope="scope">{{ formatConfidence(scope.row.confidence) }}</template>
-            </el-table-column>
-            <el-table-column label="视频时间" width="100">
-              <template slot-scope="scope">{{ formatVideoTime(scope.row.videoTimeSeconds) }}</template>
             </el-table-column>
             <el-table-column label="操作" width="72" fixed="right">
               <template slot-scope="scope">
@@ -346,10 +339,7 @@ export default {
           imageData: frame.dataUrl,
           imageWidth: frame.width,
           imageHeight: frame.height,
-          capturedAt: new Date().toISOString(),
-          videoTimeSeconds: this.currentVideoTimeMs === null
-            ? null
-            : Math.round(this.currentVideoTimeMs) / 1000
+          capturedAt: new Date().toISOString()
         })
         if (generation !== this.requestGeneration || !response || !response.data) return
         this.latestFrame = frame
@@ -485,11 +475,6 @@ export default {
     formatConfidence(value) {
       const confidence = Number(value)
       return Number.isFinite(confidence) ? Math.round(confidence * 100) + '%' : '--'
-    },
-    formatVideoTime(value) {
-      if (value === null || value === undefined || value === '') return '--'
-      const seconds = Number(value)
-      return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + 's' : '--'
     },
     formatTime(value) {
       if (!value) return ''

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -36,6 +37,7 @@ class AiHistoryServiceTest {
         assertEquals(1, page.getList().size());
         assertEquals("归林驿-东北角作业区", page.getList().get(0).getChannelName());
         assertEquals("/api/ai/history/history-test-001/image", page.getList().get(0).getImageUrl());
+        assertNull(page.getList().get(0).getVideoTimeSeconds());
         verify(mapper).findPage(35, 10, 10L);
     }
 

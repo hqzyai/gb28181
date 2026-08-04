@@ -65,6 +65,11 @@ public class AiHistorySchemaInitializer implements ApplicationRunner {
         if (!indexExists()) {
             jdbcTemplate.execute("CREATE INDEX " + INDEX_NAME + " ON " + TABLE_NAME + " (channel_id, analyzed_at)");
         }
+        int clearedVideoPositions = jdbcTemplate.update(
+                "UPDATE " + TABLE_NAME + " SET video_time_seconds = NULL WHERE video_time_seconds IS NOT NULL");
+        if (clearedVideoPositions > 0) {
+            log.info("Cleared retained AI history video positions, rows={}", clearedVideoPositions);
+        }
         log.info("AI history schema is ready");
     }
 

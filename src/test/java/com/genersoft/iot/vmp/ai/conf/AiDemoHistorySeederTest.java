@@ -61,6 +61,7 @@ class AiDemoHistorySeederTest {
         assertTrue(universityResults.values().stream().allMatch(result -> "人工复核".equals(result.getStatus())));
         assertTrue(universityResults.values().stream().allMatch(result -> result.getImageWidth() == 1920));
         assertTrue(universityResults.values().stream().allMatch(result -> result.getImageHeight() == 1080));
+        assertTrue(universityResults.values().stream().allMatch(result -> result.getVideoTimeSeconds() == null));
         assertTrue(universityResults.values().stream()
                 .allMatch(result -> result.getSummary().contains("散料坠落风险")));
     }

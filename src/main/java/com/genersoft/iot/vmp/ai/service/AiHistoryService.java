@@ -127,7 +127,8 @@ public class AiHistoryService {
         entity.setSiteName(required(result.getSiteName(), 255, "工地名称"));
         entity.setCapturedAt(required(orElse(result.getCapturedAt(), result.getAnalyzedAt()), 64, "抓拍时间"));
         entity.setAnalyzedAt(required(result.getAnalyzedAt(), 64, "检测时间"));
-        entity.setVideoTimeSeconds(normalizeVideoTime(result.getVideoTimeSeconds()));
+        // AI history intentionally does not retain source-video position metadata.
+        entity.setVideoTimeSeconds(null);
         entity.setModel(optional(result.getModel(), 128));
         entity.setImageWidth(Math.max(1, result.getImageWidth()));
         entity.setImageHeight(Math.max(1, result.getImageHeight()));
@@ -158,7 +159,7 @@ public class AiHistoryService {
         result.setSiteName(entity.getSiteName());
         result.setCapturedAt(entity.getCapturedAt());
         result.setAnalyzedAt(entity.getAnalyzedAt());
-        result.setVideoTimeSeconds(entity.getVideoTimeSeconds());
+        result.setVideoTimeSeconds(null);
         result.setModel(entity.getModel());
         result.setImageWidth(entity.getImageWidth());
         result.setImageHeight(entity.getImageHeight());
@@ -253,13 +254,6 @@ public class AiHistoryService {
         } catch (DateTimeParseException | NullPointerException ex) {
             return LocalDate.now(CHINA_ZONE);
         }
-    }
-
-    private static Double normalizeVideoTime(Double value) {
-        if (value == null || !Double.isFinite(value) || value < 0D) {
-            return null;
-        }
-        return Math.round(value * 100D) / 100D;
     }
 
     private static double clampConfidence(double value) {

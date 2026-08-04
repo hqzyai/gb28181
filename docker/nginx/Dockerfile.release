@@ -1,0 +1,6 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# Replace the complete web artifact while retaining the verified nginx runtime.
+RUN rm -rf /opt/dist && mkdir -p /opt/dist
+COPY src/main/resources/static/ /opt/dist/

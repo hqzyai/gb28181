@@ -21,32 +21,32 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
 
     private static final List<DemoFrame> GUILINYI_FRAMES = List.of(
             new DemoFrame("demo-guilinyi-20260721103336", "01-hot-work-84.jpg", 1784, 852,
-                    "2026-07-21T10:33:36+08:00", 15.02D, "动火可燃物", 0.84D),
+                    "2026-07-21T10:33:36+08:00", "动火可燃物", 0.84D),
             new DemoFrame("demo-guilinyi-20260721101855", "02-height-89.jpg", 1792, 858,
-                    "2026-07-21T10:18:55+08:00", 14.18D, "高处作业未系安全绳", 0.89D),
+                    "2026-07-21T10:18:55+08:00", "高处作业未系安全绳", 0.89D),
             new DemoFrame("demo-guilinyi-20260721101923", "03-height-90.jpg", 1792, 858,
-                    "2026-07-21T10:19:23+08:00", 42.37D, "高处作业未系安全绳", 0.90D),
+                    "2026-07-21T10:19:23+08:00", "高处作业未系安全绳", 0.90D),
             new DemoFrame("demo-guilinyi-20260721101942", "04-height-71.jpg", 1792, 858,
-                    "2026-07-21T10:19:42+08:00", 61.56D, "高处作业未系安全绳", 0.71D),
+                    "2026-07-21T10:19:42+08:00", "高处作业未系安全绳", 0.71D),
             new DemoFrame("demo-guilinyi-20260721103350", "05-hot-work-75.jpg", 1784, 852,
-                    "2026-07-21T10:33:50+08:00", 29.13D, "动火可燃物", 0.75D),
+                    "2026-07-21T10:33:50+08:00", "动火可燃物", 0.75D),
             new DemoFrame("demo-guilinyi-20260721101844", "06-height-88.jpg", 1792, 858,
-                    "2026-07-21T10:18:44+08:00", 3.21D, "高处作业未系安全绳", 0.88D),
+                    "2026-07-21T10:18:44+08:00", "高处作业未系安全绳", 0.88D),
             new DemoFrame("demo-guilinyi-20260721103403", "07-hot-work-75.jpg", 1784, 852,
-                    "2026-07-21T10:34:03+08:00", 42.26D, "动火可燃物", 0.75D),
+                    "2026-07-21T10:34:03+08:00", "动火可燃物", 0.75D),
             new DemoFrame("demo-guilinyi-20260721103419", "08-hot-work-80.jpg", 1784, 852,
-                    "2026-07-21T10:34:19+08:00", 58.56D, "动火可燃物", 0.80D)
+                    "2026-07-21T10:34:19+08:00", "动火可燃物", 0.80D)
     );
 
     private static final List<DemoFrame> UNIVERSITY_PHASE_TWO_SECTION_FOUR_FRAMES = List.of(
             new DemoFrame("demo-university-p2s4-20260711160734-65", "01-hoisting-no-hopper-65.jpg", 1920, 1080,
-                    "2026-07-11T16:07:34+08:00", 34.00D, "吊运散料未使用料斗", 0.65D),
+                    "2026-07-11T16:07:34+08:00", "吊运散料未使用料斗", 0.65D),
             new DemoFrame("demo-university-p2s4-20260711160739-70", "02-hoisting-no-hopper-70.jpg", 1920, 1080,
-                    "2026-07-11T16:07:39+08:00", 39.00D, "吊运散料未使用料斗", 0.70D),
+                    "2026-07-11T16:07:39+08:00", "吊运散料未使用料斗", 0.70D),
             new DemoFrame("demo-university-p2s4-20260711160739-68", "03-hoisting-no-hopper-68.jpg", 1920, 1080,
-                    "2026-07-11T16:07:39+08:00", 39.20D, "吊运散料未使用料斗", 0.68D),
+                    "2026-07-11T16:07:39+08:00", "吊运散料未使用料斗", 0.68D),
             new DemoFrame("demo-university-p2s4-20260711160739-72", "04-hoisting-no-hopper-72.jpg", 1920, 1080,
-                    "2026-07-11T16:07:39+08:00", 39.40D, "吊运散料未使用料斗", 0.72D)
+                    "2026-07-11T16:07:39+08:00", "吊运散料未使用料斗", 0.72D)
     );
 
     private final AiAnalysisConfig config;
@@ -105,7 +105,6 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
         result.setAnalysisId(frame.analysisId());
         result.setCapturedAt(frame.detectedAt());
         result.setAnalyzedAt(frame.detectedAt());
-        result.setVideoTimeSeconds(frame.videoTimeSeconds());
         result.setModel("demo-history-v1");
         result.setImageWidth(frame.width());
         result.setImageHeight(frame.height());
@@ -159,7 +158,6 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
             int width,
             int height,
             String detectedAt,
-            double videoTimeSeconds,
             String riskName,
             double confidence
     ) {

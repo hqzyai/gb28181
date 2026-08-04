@@ -430,7 +430,7 @@ public class AiAnalysisService {
         result.setChannelName(trimToLength(request.getChannelName(), 200));
         result.setCapturedAt(trimToLength(request.getCapturedAt(), 64));
         result.setAnalyzedAt(OffsetDateTime.now(CHINA_ZONE).format(TIME_FORMATTER));
-        result.setVideoTimeSeconds(normalizeVideoTime(request.getVideoTimeSeconds()));
+        result.setVideoTimeSeconds(null);
         result.setModel(config.getModel());
         result.setImageWidth(frame.width());
         result.setImageHeight(frame.height());
@@ -462,13 +462,6 @@ public class AiAnalysisService {
         );
         result.setTips(tipsFor(top.getType()));
         return result;
-    }
-
-    private static Double normalizeVideoTime(Double value) {
-        if (value == null || !Double.isFinite(value) || value < 0D) {
-            return null;
-        }
-        return Math.round(value * 100D) / 100D;
     }
 
     private static List<String> tipsFor(String riskType) {
