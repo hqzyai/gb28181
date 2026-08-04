@@ -71,6 +71,8 @@ ai-analysis:
     demo-site-name: ${AI_ANALYSIS_DEMO_SITE_NAME:雄安湾生态基地}
     demo-university-channel-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_CHANNEL_NAME:大学城二期四标-加工厂西南作业区}
     demo-university-site-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_SITE_NAME:大学城二期四标}
+    demo-guilinyi-sync-channel-name-contains: ${AI_ANALYSIS_DEMO_GUILINYI_SYNC_CHANNEL_NAME_CONTAINS:荷风驿,芳菲驿,云水驿,香澜驿}
+    demo-guilinyi-sync-reconcile-interval-ms: ${AI_ANALYSIS_DEMO_GUILINYI_SYNC_RECONCILE_INTERVAL_MS:300000}
     demo-qingteng-channel-name-contains: ${AI_ANALYSIS_DEMO_QINGTENG_CHANNEL_NAME_CONTAINS:青藤小镇}
     demo-qingteng-site-name: ${AI_ANALYSIS_DEMO_QINGTENG_SITE_NAME:青藤小镇}
     demo-qingteng-reconcile-interval-ms: ${AI_ANALYSIS_DEMO_QINGTENG_RECONCILE_INTERVAL_MS:300000}

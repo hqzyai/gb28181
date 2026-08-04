@@ -35,6 +35,7 @@ public class AiAnalysisConfig {
     private String demoSiteName = "雄安湾生态基地";
     private String demoUniversityChannelName = "大学城二期四标-加工厂西南作业区";
     private String demoUniversitySiteName = "大学城二期四标";
+    private String demoGuilinyiSyncChannelNameContains = "荷风驿,芳菲驿,云水驿,香澜驿";
     private String demoQingtengChannelNameContains = "青藤小镇";
     private String demoQingtengSiteName = "青藤小镇";
 

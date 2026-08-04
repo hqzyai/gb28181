@@ -31,6 +31,14 @@ class AiDemoHistorySeederTest {
         AiHistoryService historyService = mock(AiHistoryService.class);
         when(historyService.findChannelIdByExactName(config.getDemoChannelName())).thenReturn(35);
         when(historyService.findChannelIdByExactName(config.getDemoUniversityChannelName())).thenReturn(59);
+        when(historyService.findChannelsByNameContaining("荷风驿"))
+                .thenReturn(List.of(channel(81, "荷风驿-西北角作业区")));
+        when(historyService.findChannelsByNameContaining("芳菲驿"))
+                .thenReturn(List.of(channel(82, "芳菲驿-东南角作业区")));
+        when(historyService.findChannelsByNameContaining("云水驿"))
+                .thenReturn(List.of(channel(83, "云水驿-东南角作业区")));
+        when(historyService.findChannelsByNameContaining("香澜驿"))
+                .thenReturn(List.of(channel(84, "香澜驿-东南角作业区")));
         when(historyService.findChannelsByNameContaining(config.getDemoQingtengChannelNameContains()))
                 .thenReturn(List.of(
                         channel(71, "青藤小镇项目(南区)-2#塔吊-球机"),
@@ -46,7 +54,7 @@ class AiDemoHistorySeederTest {
         ArgumentCaptor<String> siteCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<AiAnalysisResult> resultCaptor = ArgumentCaptor.forClass(AiAnalysisResult.class);
         ArgumentCaptor<byte[]> imageCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(historyService, times(28)).seedDemo(
+        verify(historyService, times(60)).seedDemo(
                 channelCaptor.capture(), siteCaptor.capture(), resultCaptor.capture(),
                 imageCaptor.capture(), eq("image/jpeg"));
 
@@ -54,10 +62,32 @@ class AiDemoHistorySeederTest {
         assertEquals(4, channelCaptor.getAllValues().stream().filter(id -> id == 59).count());
         assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 71).count());
         assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 72).count());
-        assertEquals(8, siteCaptor.getAllValues().stream().filter(config.getDemoSiteName()::equals).count());
+        assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 81).count());
+        assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 82).count());
+        assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 83).count());
+        assertEquals(8, channelCaptor.getAllValues().stream().filter(id -> id == 84).count());
+        assertEquals(40, siteCaptor.getAllValues().stream().filter(config.getDemoSiteName()::equals).count());
         assertEquals(4, siteCaptor.getAllValues().stream().filter(config.getDemoUniversitySiteName()::equals).count());
         assertEquals(16, siteCaptor.getAllValues().stream().filter(config.getDemoQingtengSiteName()::equals).count());
         assertTrue(imageCaptor.getAllValues().stream().allMatch(image -> image.length > 0));
+
+        List<AiAnalysisResult> synchronizedGuilinyiResults = resultCaptor.getAllValues().stream()
+                .filter(result -> result.getAnalysisId().startsWith("demo-guilinyi-"))
+                .filter(result -> result.getAnalysisId().contains("-c"))
+                .toList();
+        assertEquals(32, synchronizedGuilinyiResults.size());
+        assertEquals(32, synchronizedGuilinyiResults.stream()
+                .map(AiAnalysisResult::getAnalysisId).distinct().count());
+        assertEquals(16, synchronizedGuilinyiResults.stream()
+                .filter(result -> "动火可燃物".equals(result.getRiskName())).count());
+        assertEquals(16, synchronizedGuilinyiResults.stream()
+                .filter(result -> "高处作业未系安全绳".equals(result.getRiskName())).count());
+        assertEquals(12, synchronizedGuilinyiResults.stream()
+                .filter(result -> "自动告警".equals(result.getStatus())).count());
+        assertEquals(20, synchronizedGuilinyiResults.stream()
+                .filter(result -> "人工复核".equals(result.getStatus())).count());
+        assertTrue(synchronizedGuilinyiResults.stream()
+                .allMatch(result -> result.getVideoTimeSeconds() == null));
 
         Map<String, AiAnalysisResult> universityResults = resultCaptor.getAllValues().stream()
                 .filter(result -> "吊运散料未使用料斗".equals(result.getRiskName()))
@@ -115,6 +145,27 @@ class AiDemoHistorySeederTest {
 
         verify(historyService, times(4)).seedDemo(
                 eq(59), eq(config.getDemoUniversitySiteName()), any(AiAnalysisResult.class),
+                any(byte[].class), eq("image/jpeg"));
+    }
+
+    @Test
+    void overlappingNameMatchersSeedTheSameCameraOnlyOnce() {
+        AiAnalysisConfig config = demoConfig();
+        config.setDemoGuilinyiSyncChannelNameContains("荷风驿,风驿");
+        AiHistoryService historyService = mock(AiHistoryService.class);
+        AiChannelContext target = channel(81, "荷风驿-西北角作业区");
+        when(historyService.findChannelsByNameContaining("荷风驿")).thenReturn(List.of(target));
+        when(historyService.findChannelsByNameContaining("风驿")).thenReturn(List.of(target));
+        when(historyService.findChannelsByNameContaining(config.getDemoQingtengChannelNameContains()))
+                .thenReturn(List.of());
+        when(historyService.seedDemo(
+                anyInt(), anyString(), any(AiAnalysisResult.class), any(byte[].class), eq("image/jpeg")))
+                .thenReturn(true);
+
+        new AiDemoHistorySeeder(config, historyService).run(mock(ApplicationArguments.class));
+
+        verify(historyService, times(8)).seedDemo(
+                eq(81), eq(config.getDemoSiteName()), any(AiAnalysisResult.class),
                 any(byte[].class), eq("image/jpeg"));
     }
 

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,7 +100,24 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
                 "demo/ai-history/university-phase2-section4/",
                 UNIVERSITY_PHASE_TWO_SECTION_FOUR_FRAMES
         ));
+        reconcileGuilinyiSynchronizedDemoHistory();
         reconcileQingtengDemoHistory();
+    }
+
+    @Scheduled(
+            initialDelayString = "${ai-analysis.demo-guilinyi-sync-reconcile-interval-ms:300000}",
+            fixedDelayString = "${ai-analysis.demo-guilinyi-sync-reconcile-interval-ms:300000}"
+    )
+    public synchronized void reconcileGuilinyiSynchronizedDemoHistory() {
+        if (!config.isDemoEnabled()) {
+            return;
+        }
+        seedMatchingDataset(new MatchingDemoDataset(
+                parseChannelNameParts(config.getDemoGuilinyiSyncChannelNameContains()),
+                config.getDemoSiteName(),
+                "demo/ai-history/guilinyi/",
+                GUILINYI_FRAMES
+        ));
     }
 
     @Scheduled(
@@ -110,7 +129,7 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
             return;
         }
         seedMatchingDataset(new MatchingDemoDataset(
-                config.getDemoQingtengChannelNameContains(),
+                parseChannelNameParts(config.getDemoQingtengChannelNameContains()),
                 config.getDemoQingtengSiteName(),
                 "demo/ai-history/qingteng-town/",
                 QINGTENG_TOWN_FRAMES
@@ -136,12 +155,26 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
     }
 
     private void seedMatchingDataset(MatchingDemoDataset dataset) {
-        List<AiChannelContext> channels = historyService.findChannelsByNameContaining(dataset.channelNamePart());
-        if (channels.isEmpty()) {
-            log.debug("AI matching demo history camera was not found: {}", dataset.channelNamePart());
+        Map<Integer, AiChannelContext> matchedChannels = new LinkedHashMap<>();
+        for (String channelNamePart : dataset.channelNameParts()) {
+            if (channelNamePart == null || channelNamePart.isBlank()) {
+                continue;
+            }
+            List<AiChannelContext> channels = historyService.findChannelsByNameContaining(channelNamePart.trim());
+            if (channels == null) {
+                continue;
+            }
+            for (AiChannelContext channel : channels) {
+                if (channel != null && channel.getChannelId() > 0) {
+                    matchedChannels.putIfAbsent(channel.getChannelId(), channel);
+                }
+            }
+        }
+        if (matchedChannels.isEmpty()) {
+            log.debug("AI matching demo history camera was not found: {}", dataset.channelNameParts());
             return;
         }
-        for (AiChannelContext channel : channels) {
+        for (AiChannelContext channel : matchedChannels.values()) {
             int inserted = 0;
             for (DemoFrame frame : dataset.frames()) {
                 String analysisId = frame.analysisId() + "-c" + channel.getChannelId();
@@ -159,6 +192,17 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
                         channel.getChannelName(), channel.getChannelId(), dataset.frames().size());
             }
         }
+    }
+
+    private static List<String> parseChannelNameParts(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(rawValue.split("[,，;；/|\\r\\n]+"))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .distinct()
+                .toList();
     }
 
     private byte[] loadImage(String resourceDirectory, DemoFrame frame) {
@@ -237,7 +281,7 @@ public class AiDemoHistorySeeder implements ApplicationRunner {
     }
 
     private record MatchingDemoDataset(
-            String channelNamePart,
+            List<String> channelNameParts,
             String siteName,
             String resourceDirectory,
             List<DemoFrame> frames
