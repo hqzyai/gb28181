@@ -86,6 +86,14 @@ public class AiHistoryService {
         return channel == null ? null : channel.getChannelId();
     }
 
+    public List<AiChannelContext> findChannelsByNameContaining(String channelNamePart) {
+        if (channelNamePart == null || channelNamePart.isBlank()) {
+            return List.of();
+        }
+        List<AiChannelContext> channels = mapper.findChannelsByNameContaining(channelNamePart.trim());
+        return channels == null ? List.of() : List.copyOf(channels);
+    }
+
     public boolean seedDemo(int channelId, String siteName, AiAnalysisResult result, byte[] image, String contentType) {
         if (mapper.countByAnalysisId(validateAnalysisId(result.getAnalysisId())) > 0) {
             return false;

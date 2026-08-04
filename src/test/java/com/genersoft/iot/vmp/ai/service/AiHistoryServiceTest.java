@@ -51,6 +51,31 @@ class AiHistoryServiceTest {
         assertEquals(400, exception.getCode());
     }
 
+    @Test
+    void findsAllCameraChannelsByTrimmedNamePart() {
+        AiHistoryMapper mapper = mock(AiHistoryMapper.class);
+        AiHistoryService service = new AiHistoryService(
+                mapper, mock(AiHistoryStorage.class), new AiAnalysisConfig());
+        AiChannelContext south = channel();
+        south.setChannelId(37);
+        south.setChannelName("青藤小镇项目(南区)-2#塔吊-球机");
+        when(mapper.findChannelsByNameContaining("青藤小镇")).thenReturn(List.of(south));
+
+        List<AiChannelContext> channels = service.findChannelsByNameContaining("  青藤小镇  ");
+
+        assertEquals(List.of(south), channels);
+        verify(mapper).findChannelsByNameContaining("青藤小镇");
+    }
+
+    @Test
+    void blankCameraNamePartDoesNotQueryDatabase() {
+        AiHistoryMapper mapper = mock(AiHistoryMapper.class);
+        AiHistoryService service = new AiHistoryService(
+                mapper, mock(AiHistoryStorage.class), new AiAnalysisConfig());
+
+        assertEquals(List.of(), service.findChannelsByNameContaining("  "));
+    }
+
     private static AiChannelContext channel() {
         AiChannelContext context = new AiChannelContext();
         context.setChannelId(35);

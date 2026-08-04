@@ -71,4 +71,17 @@ public interface AiHistoryMapper {
             "COALESCE(child.gb_parent_id, child.parent_id) = COALESCE(parent.gb_device_id, parent.device_id) " +
             "WHERE COALESCE(child.gb_name, child.name) = #{channelName} ORDER BY child.id LIMIT 1")
     AiChannelContext findChannelByExactName(@Param("channelName") String channelName);
+
+    @Select("SELECT child.id AS channelId, " +
+            "COALESCE(child.gb_device_id, child.device_id) AS channelDeviceId, " +
+            "COALESCE(child.gb_name, child.name) AS channelName, " +
+            "COALESCE(parent.gb_name, parent.name, child.gb_name, child.name) AS siteName " +
+            "FROM wvp_device_channel child " +
+            "LEFT JOIN wvp_device_channel parent ON " +
+            "COALESCE(child.gb_parent_id, child.parent_id) = COALESCE(parent.gb_device_id, parent.device_id) " +
+            "WHERE child.channel_type = 0 " +
+            "AND COALESCE(child.gb_status, child.status) IS NOT NULL " +
+            "AND COALESCE(child.gb_name, child.name) LIKE CONCAT('%', #{channelNamePart}, '%') " +
+            "ORDER BY child.id")
+    List<AiChannelContext> findChannelsByNameContaining(@Param("channelNamePart") String channelNamePart);
 }

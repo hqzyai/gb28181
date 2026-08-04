@@ -71,6 +71,9 @@ ai-analysis:
     demo-site-name: ${AI_ANALYSIS_DEMO_SITE_NAME:雄安湾生态基地}
     demo-university-channel-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_CHANNEL_NAME:大学城二期四标-加工厂西南作业区}
     demo-university-site-name: ${AI_ANALYSIS_DEMO_UNIVERSITY_SITE_NAME:大学城二期四标}
+    demo-qingteng-channel-name-contains: ${AI_ANALYSIS_DEMO_QINGTENG_CHANNEL_NAME_CONTAINS:青藤小镇}
+    demo-qingteng-site-name: ${AI_ANALYSIS_DEMO_QINGTENG_SITE_NAME:青藤小镇}
+    demo-qingteng-reconcile-interval-ms: ${AI_ANALYSIS_DEMO_QINGTENG_RECONCILE_INTERVAL_MS:300000}
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，
