@@ -247,17 +247,24 @@
 .el-link.el-link--success { color: var(--ui-success); }
 .el-link.el-link--warning { color: var(--ui-warning); }
 .el-link:not(.is-disabled):hover { color: var(--ui-primary); }
+.el-link.el-link--danger:not(.is-disabled):hover { color: var(--ui-destructive); }
+.el-link.el-link--success:not(.is-disabled):hover { color: var(--ui-success); }
+.el-link.el-link--warning:not(.is-disabled):hover { color: var(--ui-warning); }
+.el-link:not(.is-disabled) { text-decoration: underline; text-underline-offset: 3px; }
+.el-link:not(.is-disabled):hover { text-decoration-thickness: 2px; }
 .el-link.is-underline:hover::after { border-color: currentColor; }
 .el-link.is-disabled { color: var(--ui-muted-foreground); opacity: .5; }
 .el-month-table, .el-year-table, .el-time-panel, .el-time-range-picker, .el-cascader-panel { font-family: var(--ui-font-body); font-size: .875rem; color: var(--ui-foreground); }
 .el-month-table td .cell, .el-year-table td .cell { color: var(--ui-foreground); }
 .el-month-table td.today .cell, .el-year-table td.today .cell, .el-month-table td.current:not(.disabled) .cell, .el-year-table td.current:not(.disabled) .cell { color: var(--ui-primary); font-weight: 500; }
 .el-month-table td .cell:hover, .el-year-table td .cell:hover { color: var(--ui-primary); background: var(--ui-accent); }
+.el-month-table td.current:not(.disabled) .cell, .el-year-table td.current:not(.disabled) .cell { background: var(--ui-selected-background); color: var(--ui-selected-foreground); }
 .el-month-table td.in-range div { background: var(--ui-accent); }
 .el-month-table td.disabled .cell, .el-year-table td.disabled .cell { color: var(--ui-muted-foreground); background: var(--ui-muted); }
 .el-time-panel, .el-time-range-picker { background: var(--ui-popover); border-color: var(--ui-border); border-radius: var(--ui-radius-popover); box-shadow: var(--ui-shadow-popover); }
 .el-time-spinner__item { color: var(--ui-foreground); font-size: .875rem; }
 .el-time-spinner__item.active:not(.disabled) { color: var(--ui-primary); font-weight: 500; }
+.el-time-spinner__item.active:not(.disabled) { background: var(--ui-selected-background); }
 .el-time-spinner__item:not(.disabled):not(.active):hover { background: var(--ui-accent); }
 .el-time-spinner__item.disabled { color: var(--ui-muted-foreground); opacity: .5; }
 .el-time-panel__footer { border-color: var(--ui-border); }
@@ -270,6 +277,12 @@
 .el-tooltip__popper[x-placement^=bottom] .popper__arrow::after { border-bottom-color: var(--ui-popover); }
 .el-tooltip__popper[x-placement^=top] .popper__arrow { border-top-color: var(--ui-border); }
 .el-tooltip__popper[x-placement^=top] .popper__arrow::after { border-top-color: var(--ui-popover); }
+.el-tooltip__popper[x-placement^=left] .popper__arrow { border-left-color: var(--ui-border); }
+.el-tooltip__popper[x-placement^=left] .popper__arrow::after { border-left-color: var(--ui-popover); }
+.el-tooltip__popper[x-placement^=right] .popper__arrow { border-right-color: var(--ui-border); }
+.el-tooltip__popper[x-placement^=right] .popper__arrow::after { border-right-color: var(--ui-popover); }
+.el-checkbox.is-disabled, .el-radio.is-disabled, .el-switch.is-disabled { opacity: .5; }
+.el-checkbox.is-disabled .el-checkbox__input.is-disabled, .el-radio.is-disabled .el-radio__input.is-disabled { opacity: 1; }
 
 // Visible keyboard focus follows the original tab order and popup behavior.
 #app a:focus-visible, #app button:focus-visible, #app input:focus-visible,
