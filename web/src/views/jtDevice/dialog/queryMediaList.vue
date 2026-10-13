@@ -282,7 +282,8 @@ export default {
 }
 .el-slider__marks-text {
   margin-top: -36px;
-  font-size: 12px;
+  font-size: .75rem;
+  line-height: 1.125rem;
   width: 2rem !important;
 }
 </style>

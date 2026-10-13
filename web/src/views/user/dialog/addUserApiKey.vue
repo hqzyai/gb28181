@@ -10,7 +10,7 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <div id="shared" style="margin-right: 20px;">
+      <div id="shared" class="user-dialog-body">
         <el-form ref="formRef" :model="form" :rules="rules" status-icon label-width="80px">
           <el-form-item label="应用名" prop="app">
             <el-input
@@ -20,7 +20,7 @@
             />
           </el-form-item>
           <el-form-item label="启用状态" prop="enable" style="text-align: left">
-            <el-switch
+            <el-switch :width="32"
               v-model="form.enable"
               property="enable"
               active-text="启用"
@@ -50,7 +50,7 @@
             />
           </el-form-item>
           <el-form-item>
-            <div style="float: right;">
+            <div class="user-dialog-actions">
               <el-button type="primary" @click="onSubmit">保存</el-button>
               <el-button @click="close">取消</el-button>
             </div>
@@ -137,3 +137,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.user-dialog-body {
+  margin-inline-end: 20px;
+  color: var(--ui-foreground);
+}
+
+.user-dialog-actions {
+  float: right;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.user-dialog-actions >>> .el-button + .el-button {
+  margin-inline-start: 0;
+}
+</style>

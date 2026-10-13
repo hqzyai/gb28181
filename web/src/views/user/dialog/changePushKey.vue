@@ -10,13 +10,13 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <div id="shared" style="margin-right: 18px;">
+      <div id="shared" class="user-dialog-body">
         <el-form ref="pushKeyForm" :rules="rules" status-icon label-width="86px">
           <el-form-item label="新pushKey" prop="newPushKey">
             <el-input v-model="newPushKey" autocomplete="off" />
           </el-form-item>
           <el-form-item>
-            <div style="float: right;">
+            <div class="user-dialog-actions">
               <el-button type="primary" @click="onSubmit">保存</el-button>
               <el-button @click="close">取消</el-button>
             </div>
@@ -98,3 +98,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.user-dialog-body {
+  margin-inline-end: 20px;
+  color: var(--ui-foreground);
+}
+
+.user-dialog-actions {
+  float: right;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.user-dialog-actions >>> .el-button + .el-button {
+  margin-inline-start: 0;
+}
+</style>

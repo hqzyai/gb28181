@@ -47,7 +47,7 @@
                   :disabled="broadcastStatus === -2"
                   circle
                   icon="el-icon-microphone"
-                  style="font-size: 32px; padding: 24px;margin-top: 24px;"
+                  style="font-size: 2rem; padding: 24px;margin-top: 24px;"
                   @click="broadcastStatusClick()"
                 />
                 <p>

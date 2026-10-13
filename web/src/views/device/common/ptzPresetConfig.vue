@@ -7,7 +7,7 @@
       </div>
       <el-button icon="el-icon-refresh-right" circle @click="getPresetList" />
     </div>
-    <el-form v-if="showAddForm" size="small" inline style="margin-bottom: 6px; padding: 16px 8px; border: 1px solid #e6e6e6; border-radius: 4px; display: flex; align-items: center;">
+    <el-form v-if="showAddForm" size="small" inline style="margin-bottom: 6px; padding: 16px 8px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-surface); display: flex; align-items: center;">
       <el-form-item label="序号" style="margin-bottom: 0; margin-right: 2rem">
         <el-input-number v-model="addPresetId" :min="1" :max="255" controls-position="right" style="width: 180px" />
       </el-form-item>
@@ -33,7 +33,7 @@
       <el-table-column label="操作" min-width="140" align="center">
         <template v-slot="{ row }">
           <el-button size="mini" type="text" @click="callPreset(row)">调用</el-button>
-          <el-button size="mini" type="text" style="color: #F56C6C" :loading="deletingId === row.presetId" :disabled="deletingId !== null" @click="delPreset(row)">删除</el-button>
+          <el-button size="mini" type="text" style="color: var(--ui-destructive)" :loading="deletingId === row.presetId" :disabled="deletingId !== null" @click="delPreset(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

@@ -10,7 +10,7 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <div id="shared" style="margin-right: 20px;">
+      <div id="shared" class="user-dialog-body">
         <el-form ref="passwordForm" :rules="rules" status-icon label-width="80px">
           <el-form-item label="用户名" prop="username">
             <el-input v-model="username" autocomplete="off" />
@@ -33,7 +33,7 @@
           </el-form-item>
 
           <el-form-item>
-            <div style="float: right;">
+            <div class="user-dialog-actions">
               <el-button type="primary" @click="onSubmit">保存</el-button>
               <el-button @click="close">取消</el-button>
             </div>
@@ -141,3 +141,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.user-dialog-body {
+  margin-inline-end: 20px;
+  color: var(--ui-foreground);
+}
+
+.user-dialog-actions {
+  float: right;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.user-dialog-actions >>> .el-button + .el-button {
+  margin-inline-start: 0;
+}
+</style>

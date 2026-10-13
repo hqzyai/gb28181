@@ -1,6 +1,6 @@
 <template>
-  <div id="log" style="height: 100%">
-    <el-form :inline="true" size="mini">
+  <div id="log" class="operations-log-viewer">
+    <el-form :inline="true" size="mini" class="operations-log-toolbar">
       <el-form-item label="过滤">
         <el-input v-model="filter" size="mini" placeholder="请输入过滤关键字" style="width: 20vw" />
       </el-form-item>
@@ -8,7 +8,7 @@
         <el-button size="mini" icon="el-icon-download" @click="downloadFile()">下载</el-button>
       </el-form-item>
     </el-form>
-    <log-viewer :log="logData" :auto-scroll="true" :height="winHeight" style="height: calc(100% - 60px);" />
+    <log-viewer :log="logData" :auto-scroll="true" :height="winHeight" class="operations-log-content" />
   </div>
 </template>
 
@@ -165,16 +165,31 @@ export default {
 }
 </script>
 
-<style>
-.log-loading{
+<style scoped>
+.operations-log-viewer {
+  height: 100%;
+  color: var(--ui-foreground);
+}
+
+.operations-log-toolbar >>> .el-form-item {
+  margin-inline-end: 8px;
+}
+
+.operations-log-content {
+  height: calc(100% - 60px);
+  font-family: var(--ui-font-mono);
+}
+
+.log-loading {
   position: absolute;
   left: 50%;
   top: 50%;
   display: inline-block;
   text-align: center;
   background-color: transparent;
-  font-size: 20px;
-  color: rgb(255, 255, 255);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  color: var(--ui-foreground);
   z-index: 1000;
 }
 </style>

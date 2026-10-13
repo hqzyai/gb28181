@@ -21,19 +21,19 @@
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item">
                 <el-tag
                   v-if="chooseFileIndex !== index"
-                  style="background-color: #ecf5ff; color: #017690; "
+                  style="background-color: var(--ui-muted); color: var(--ui-primary); "
                   @click="chooseFile(index)"
                 >
-                  <i class="el-icon-video-camera" />
+                  <ui-icon name="Video" :size="16" style="margin-right: 8px;" />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <el-tag v-if="chooseFileIndex === index" type="danger">
-                  <i class="el-icon-video-camera" />
+                  <ui-icon name="Video" :size="16" style="margin-right: 8px;" />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <a
                   class="el-icon-download"
-                  style="color: #409EFF;font-weight: 600;margin-left: 10px;"
+                  style="color: var(--ui-primary);font-weight: 600;margin-left: 10px;"
                   target="_blank"
                   @click="downloadFile(item)"
                 />
@@ -145,7 +145,7 @@
               <a
                 target="_blank"
                 class="record-play-control-item iconfont icon-stop1"
-                style="font-size: 14px"
+                style="font-size: .875rem"
                 title="停止"
                 @click="stopPLay()"
               />
@@ -605,7 +605,7 @@ export default {
   list-style: none;
   padding: 0;
   margin: 0;
-  background-color: #FFF;
+  background-color: var(--ui-card);
   margin-top: 10px;
 }
 
@@ -613,14 +613,14 @@ export default {
   list-style: none;
   padding: 0;
   margin: 0;
-  background-color: #FFF;
+  background-color: var(--ui-card);
 
 }
 
 .record-list-no-val {
   width: fit-content;
   position: relative;
-  color: #9f9f9f;
+  color: var(--ui-muted-foreground);
   top: 50%;
   left: calc(50% - 2rem);
 }

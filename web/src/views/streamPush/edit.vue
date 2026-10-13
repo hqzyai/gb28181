@@ -6,7 +6,7 @@
       </div>
     </div>
     <el-tabs tab-position="top" style="padding-top: 1rem;">
-      <el-tab-pane label="推流信息编辑" style="background-color: #FFFFFF; padding: 1rem; height: calc(-218px + 100vh);
+      <el-tab-pane label="推流信息编辑" style="background-color: var(--ui-card); padding: 1rem; height: calc(-218px + 100vh);
     overflow: auto;">
         <el-divider content-position="center">基础信息</el-divider>
         <el-form ref="streamPushForm" v-loading="locading" status-icon label-width="160px" class="channel-form">
@@ -93,7 +93,7 @@ export default {
 <style>
 .channel-form {
   display: grid;
-  background-color: #FFFFFF;
+  background-color: var(--ui-card);
   padding: 1rem 2rem 0 2rem;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;

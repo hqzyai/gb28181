@@ -3,10 +3,10 @@
     <div class="device-tree-header">
       <div class="header-title">通道列表</div>
       <div class="header-switch">
-        <el-switch
+        <el-switch :width="32"
           v-model="showRegion"
-          active-color="#13ce66"
-          inactive-color="rgb(64, 158, 255)"
+          active-color="var(--ui-primary)"
+          inactive-color="var(--ui-input)"
           active-text="行政区划"
           inactive-text="业务分组"
         />
@@ -167,7 +167,7 @@ export default {
 .device-tree-container {
   width: 100%;
   height: 100%;
-  background-color: #FFFFFF;
+  background-color: var(--ui-background);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -252,11 +252,11 @@ export default {
 }
 
 .device-online {
-  color: #252525;
+  color: var(--ui-foreground);
 }
 
 .device-offline {
-  color: #727272;
+  color: var(--ui-muted-foreground);
 }
 
 /* Responsive adjustments */
@@ -282,7 +282,7 @@ export default {
   }
 
   .header-title {
-    font-size: 14px;
+    font-size: .875rem;
   }
 
   /* Adjust el-switch text size for mobile */

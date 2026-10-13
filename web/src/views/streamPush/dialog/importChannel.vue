@@ -21,7 +21,7 @@
           :on-success="successHook"
           :on-error="errorHook"
         >
-          <i class="el-icon-upload" />
+          <ui-icon name="Upload" :size="24" style="margin: 40px 0 16px;" />
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div slot="tip" class="el-upload__tip">只能上传 csv / xls / xlsx 文件</div>
         </el-upload>

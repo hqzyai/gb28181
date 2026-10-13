@@ -68,7 +68,7 @@
         size="small"
         :data="deviceChannelList"
         height="calc(100% - 64px)"
-        style="width: 100%; font-size: 12px;"
+        style="width: 100%;"
         header-row-class-name="table-header"
       >
         <el-table-column prop="name" label="名称" min-width="180" />
@@ -83,7 +83,7 @@
               @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
             >
               <div slot="error" class="image-slot">
-                <i class="el-icon-picture-outline" />
+                <ui-icon name="Image" :size="24" />
               </div>
             </el-image>
           </template>
@@ -104,7 +104,7 @@
         </el-table-column>
         <el-table-column label="开启音频" min-width="100">
           <template v-slot:default="scope">
-            <el-switch v-model="scope.row.hasAudio" active-color="#409EFF" @change="updateChannel(scope.row)" />
+            <el-switch :width="32" v-model="scope.row.hasAudio" active-color="var(--ui-primary)" @change="updateChannel(scope.row)" />
           </template>
         </el-table-column>
         <el-table-column label="码流类型" min-width="180">
@@ -153,7 +153,7 @@
               :disabled="device == null || device.online === 0"
               icon="el-icon-switch-button"
               type="text"
-              style="color: #f56c6c"
+              style="color: var(--ui-destructive)"
               @click="stopDevicePush(scope.row)"
             >停止
             </el-button>
@@ -178,7 +178,7 @@
             <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8" direction="vertical" />
             <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
               <el-button size="medium" type="text">
-                更多<i class="el-icon-arrow-down el-icon--right" />
+                更多<ui-icon name="ChevronDown" :size="16" class="el-icon--right" />
               </el-button>
               <el-dropdown-menu>
                 <el-dropdown-item command="audioTalk" :disabled="device == null || device.online === 0">

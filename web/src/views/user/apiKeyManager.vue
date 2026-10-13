@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="width: 100%">
+  <div id="app" class="user-api-key-manager">
     <el-dialog
       title="ApiKey列表"
       width="80%"
@@ -9,9 +9,9 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <el-form :inline="true" size="mini">
+      <el-form :inline="true" size="mini" class="api-key-toolbar">
         <el-form-item>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addUserApiKey">
+          <el-button icon="el-icon-plus" size="mini" type="primary" @click="addUserApiKey">
             添加ApiKey
           </el-button>
         </el-form-item>
@@ -20,7 +20,7 @@
       <el-table
         size="small"
         :data="userList"
-        style="width: 100%;font-size: 12px;"
+        class="api-key-table"
         :height="winHeight"
         header-row-class-name="table-header"
       >
@@ -82,7 +82,7 @@
               size="medium"
               icon="el-icon-delete"
               type="text"
-              style="color: #f56c6c"
+              class="api-key-destructive-action"
               @click="deleteUserApiKey(scope.row)"
             >
               删除
@@ -91,7 +91,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
-        style="text-align: right"
+        class="api-key-pagination"
         :current-page="currentPage"
         :page-size="count"
         :page-sizes="[15, 25, 35, 50]"
@@ -320,6 +320,36 @@ export default {
   }
 }
 </script>
-<style>
+<style scoped>
+.user-api-key-manager,
+.api-key-table {
+  width: 100%;
+  color: var(--ui-foreground);
+}
 
+.api-key-toolbar >>> .el-form-item {
+  margin-inline-end: 8px;
+}
+
+.cpoy-btn {
+  margin-inline-end: 8px;
+  color: var(--ui-muted-foreground);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.cpoy-btn:hover {
+  color: var(--ui-foreground);
+}
+
+.el-button.api-key-destructive-action:not(.is-disabled),
+.el-button.api-key-destructive-action:not(.is-disabled):hover,
+.el-button.api-key-destructive-action:not(.is-disabled):focus,
+.el-button.api-key-destructive-action:not(.is-disabled):active {
+  color: var(--ui-destructive);
+}
+
+.api-key-pagination {
+  text-align: right;
+}
 </style>

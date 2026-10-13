@@ -92,5 +92,5 @@ export default {
 </script>
 <style>
 #mediaInfo { position: relative; }
-#mediaInfo >>> .el-descriptions__title { font-size: 14px; color: #606266; font-weight: 600; }
+#mediaInfo >>> .el-descriptions__title { font-size: 1rem; color: var(--ui-foreground); font-weight: 600; }
 </style>

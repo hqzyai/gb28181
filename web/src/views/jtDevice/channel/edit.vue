@@ -6,7 +6,7 @@
       </div>
     </div>
     <el-tabs tab-position="left" style="padding: 1rem; height: calc(100% - 24px)">
-      <el-tab-pane label="部标通道编辑" style="background-color: #FFFFFF;">
+      <el-tab-pane label="部标通道编辑" style="background-color: var(--ui-card);">
         <el-form ref="form" :rules="rules" :model="jtChannel" label-width="60px" style="width: 40rem; margin: 0 auto">
           <el-form-item label="编号" prop="channelId">
             <el-input v-model="jtChannel.channelId" clearable />

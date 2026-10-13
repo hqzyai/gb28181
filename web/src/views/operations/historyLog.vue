@@ -1,11 +1,11 @@
 <template>
-  <div id="app" class="app-container">
-    <div style="height: calc(100vh - 124px);">
-      <el-form :inline="true" size="mini">
+  <div id="app" class="app-container operations-history-page">
+    <div class="operations-history-content">
+      <el-form :inline="true" size="mini" class="operations-history-toolbar">
         <el-form-item label="搜索">
           <el-input
             v-model="search"
-            style="margin-right: 1rem; width: auto;"
+            class="operations-log-search"
             size="mini"
             placeholder="关键字"
             prefix-icon="el-icon-search"
@@ -65,7 +65,7 @@
             </el-button>
             <el-button size="medium" icon="el-icon-download" type="text" @click="downloadFile(scope.row)">下载
             </el-button>
-            <!--            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c"-->
+            <!--            <el-button size="medium" icon="el-icon-delete" type="text" style="color: var(--ui-destructive)"-->
             <!--                       @click="deleteRecord(scope.row)">删除-->
             <!--            </el-button>-->
           </template>
@@ -253,6 +253,18 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.operations-history-content {
+  height: calc(100vh - 124px);
+  color: var(--ui-foreground);
+}
 
+.operations-history-toolbar >>> .el-form-item {
+  margin-inline-end: 8px;
+}
+
+.operations-log-search {
+  width: auto;
+  margin-inline-end: 16px;
+}
 </style>

@@ -28,30 +28,27 @@
               v-if="!running"
               type="primary"
               size="mini"
-              icon="el-icon-video-play"
               :disabled="!streamInfo || !selectedEngineReady"
               @click="startAnalysis"
-            >开始识别</el-button>
+            ><ui-icon name="Play" :size="16" aria-hidden="true" /><span>开始识别</span></el-button>
             <el-button
               v-else
               type="danger"
               size="mini"
-              icon="el-icon-video-pause"
               @click="stopAnalysis"
-            >停止识别</el-button>
+            ><ui-icon name="Pause" :size="16" aria-hidden="true" /><span>停止识别</span></el-button>
             <el-button
               size="mini"
-              icon="el-icon-camera"
               :loading="analyzing"
               :disabled="!streamInfo || !selectedEngineReady || running"
               @click="analyzeOnce()"
-            >识别一帧</el-button>
+            ><ui-icon v-if="!analyzing" name="Camera" :size="16" aria-hidden="true" /><span>识别一帧</span></el-button>
           </div>
         </div>
 
         <div class="video-stage" v-loading="streamLoading" element-loading-text="正在拉取 GB28181 视频流">
           <div v-if="!streamInfo" class="empty-video">
-            <i class="el-icon-video-camera" />
+            <ui-icon name="Video" :size="24" aria-hidden="true" />
             <p>{{ streamError || '请从左侧选择在线摄像头通道' }}</p>
           </div>
           <PlayerTabs
@@ -138,7 +135,7 @@
         </div>
 
         <div v-else class="empty-result">
-          <i class="el-icon-cpu" />
+          <ui-icon name="Cpu" :size="24" aria-hidden="true" />
           <p>{{ taskState.error || '选择通道并点击“开始识别”' }}</p>
           <span>{{ taskState.error ? '本帧识别未完成，请等待自动重试或检查服务状态' : '系统会按设定间隔从正在播放的 GB28181 视频中抽帧分析' }}</span>
         </div>
@@ -183,7 +180,10 @@
               </template>
             </el-table-column>
             <template slot="empty">
-              <span>{{ selectedChannelId ? '当前摄像头暂无历史识别记录' : '请先选择摄像头' }}</span>
+              <div class="history-empty">
+                <ui-icon name="History" :size="24" aria-hidden="true" />
+                <span>{{ selectedChannelId ? '当前摄像头暂无历史识别记录' : '请先选择摄像头' }}</span>
+              </div>
             </template>
           </el-table>
         </div>
@@ -685,35 +685,42 @@ export default {
   display: flex;
   height: calc(100vh - 84px);
   min-height: 620px;
-  background: #f3f6fa;
+  color: var(--ui-foreground);
+  background: var(--ui-background);
+  font-family: "Geist", "Noto Sans SC", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.375rem;
+  font-synthesis: none;
   overflow: hidden;
 }
 
 .channel-panel {
   width: 340px;
   min-width: 280px;
-  background: #fff;
-  border-right: 1px solid #e5e9f0;
+  background: var(--ui-card);
+  border-right: 1px solid var(--ui-border);
   overflow: hidden;
 }
 
 .analysis-workspace {
   flex: 1;
   min-width: 0;
-  padding: 14px;
+  padding: 16px;
   display: grid;
   grid-template-columns: minmax(480px, 1.45fr) minmax(360px, 1fr);
   grid-template-rows: 480px auto;
-  gap: 14px;
+  gap: 16px;
   overflow-y: auto;
   align-content: start;
 }
 
 .panel-card {
-  background: #fff;
-  border: 1px solid #e5e9f0;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(31, 45, 61, 0.05);
+  color: var(--ui-foreground);
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -727,12 +734,12 @@ export default {
 .section-toolbar,
 .result-header,
 .history-title {
-  min-height: 54px;
-  padding: 10px 14px;
+  min-height: 56px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #edf0f5;
+  border-bottom: 1px solid var(--ui-border);
   gap: 12px;
 }
 
@@ -747,29 +754,33 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
 }
 
 .channel-id {
-  color: #909399;
-  font-size: 12px;
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .status-dot,
 .pulse-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #c0c4cc;
+  background: var(--ui-muted-foreground);
   flex: none;
 }
 
 .status-dot.online,
 .pulse-dot {
-  background: #24c66b;
+  background: var(--ui-success);
 }
 
 .pulse-dot {
-  box-shadow: 0 0 0 rgba(36, 198, 107, 0.5);
   animation: pulse 1.5s infinite;
 }
 
@@ -781,11 +792,62 @@ export default {
   justify-content: flex-end;
 }
 
-.engine-select { width: 170px; }
-.engine-note { padding: 7px 12px; font-size: 12px; color: #606266; background: #f4f8fc; }
-.task-error { display: block; color: #b45309; }
-.detection-count { font-size: 12px; color: #606266; line-height: 1.5; }
-.detection-tag { margin: 0 5px 5px 0; }
+.toolbar-actions >>> .el-button,
+.result-header-actions >>> .el-button {
+  min-height: 2rem;
+  margin-left: 0;
+  padding: 4px 8px;
+  border-radius: var(--ui-radius-control);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  box-shadow: none;
+}
+
+.toolbar-actions >>> .el-button > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.toolbar-actions >>> .el-button > span > .ui-icon + span {
+  margin-inline-start: 0;
+}
+
+.toolbar-actions >>> .el-button .ui-icon,
+.empty-video > .ui-icon,
+.empty-result > .ui-icon,
+.history-empty > .ui-icon {
+  flex: none;
+}
+
+.toolbar-actions >>> .el-input__inner {
+  height: 2rem;
+  padding-left: 8px;
+  border-radius: var(--ui-radius-control);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+}
+
+.toolbar-actions >>> .el-input__icon {
+  line-height: 2rem;
+}
+
+.toolbar-actions >>> .el-button:focus-visible,
+.result-header-actions >>> .el-button:focus-visible,
+.history-table-wrap >>> .el-button:focus-visible,
+.history-pagination >>> button:focus-visible,
+.history-pagination >>> .el-pager li:focus-visible,
+.toolbar-actions >>> .el-input__inner:focus-visible {
+  outline: 2px solid var(--ui-ring);
+  outline-offset: 2px;
+}
+
+.engine-select {
+  width: 170px;
+}
 
 .player-select {
   width: 110px;
@@ -795,6 +857,99 @@ export default {
   width: 100px;
 }
 
+.engine-note {
+  padding: 8px 12px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-muted-foreground);
+  background: var(--ui-muted);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.task-error {
+  display: block;
+  margin-top: 4px;
+  color: var(--ui-warning);
+}
+
+.detection-count {
+  margin: 8px 0 12px;
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.detection-tag {
+  margin: 0 6px 8px 0;
+}
+
+.analysis-workspace >>> .el-tag {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 22px;
+  height: auto;
+  padding: 0 6px;
+  color: var(--ui-foreground);
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-badge);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.125rem;
+}
+
+.analysis-workspace >>> .el-tag--info {
+  color: var(--ui-info);
+  border-color: var(--ui-info);
+}
+
+.analysis-workspace >>> .el-tag--success {
+  color: var(--ui-success);
+  border-color: var(--ui-success);
+}
+
+.analysis-workspace >>> .el-tag--warning {
+  color: var(--ui-warning);
+  border-color: var(--ui-warning);
+}
+
+.analysis-workspace >>> .el-tag--danger {
+  color: var(--ui-destructive);
+  border-color: var(--ui-destructive);
+}
+
+.analysis-workspace >>> .el-tag--dark {
+  color: var(--ui-primary-foreground);
+  background: var(--ui-primary);
+  border-color: var(--ui-primary);
+}
+
+.analysis-workspace >>> .el-tag--dark.el-tag--info {
+  color: var(--ui-info-foreground);
+  background: var(--ui-info);
+  border-color: var(--ui-info);
+}
+
+.analysis-workspace >>> .el-tag--dark.el-tag--success {
+  color: var(--ui-success-foreground);
+  background: var(--ui-success);
+  border-color: var(--ui-success);
+}
+
+.analysis-workspace >>> .el-tag--dark.el-tag--warning {
+  color: var(--ui-warning-foreground);
+  background: var(--ui-warning);
+  border-color: var(--ui-warning);
+}
+
+.analysis-workspace >>> .el-tag--dark.el-tag--danger {
+  color: var(--ui-destructive-foreground);
+  background: var(--ui-destructive);
+  border-color: var(--ui-destructive);
+}
+
+/* The player surface and detection overlays retain their media-specific contrast. */
 .video-stage {
   position: relative;
   flex: 1;
@@ -804,55 +959,73 @@ export default {
 
 .empty-video,
 .empty-result {
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #909399;
+  gap: 16px;
   text-align: center;
 }
 
-.empty-video i,
-.empty-result i {
-  font-size: 48px;
-  margin-bottom: 12px;
+.empty-video {
+  color: #a3a3a3;
+}
+
+.empty-result {
+  color: var(--ui-muted-foreground);
 }
 
 .empty-video p,
 .empty-result p {
-  margin: 0 0 7px;
-  color: #c0c4cc;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.empty-video p {
+  color: #e5e5e5;
 }
 
 .empty-result p {
-  color: #606266;
+  color: var(--ui-foreground);
 }
 
-.empty-result span {
-  font-size: 12px;
+.empty-result > span {
+  font-size: 0.875rem;
+  line-height: 1.375rem;
 }
 
 .analysis-running-badge {
   position: absolute;
-  left: 14px;
-  top: 14px;
+  left: 16px;
+  top: 16px;
   z-index: 30;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 11px;
-  border-radius: 16px;
+  min-height: 22px;
+  padding: 4px 8px;
+  border-radius: var(--ui-radius-badge);
   color: #fff;
   background: rgba(10, 18, 28, 0.78);
-  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.125rem;
 }
 
 .result-header h3,
-.history-title h3 {
+.history-title h3,
+.record-description h4 {
   margin: 0;
-  font-size: 16px;
+  color: var(--ui-foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
 }
 
 .result-header-actions {
@@ -863,17 +1036,19 @@ export default {
 }
 
 .result-header p,
-.history-title span {
+.history-title > span {
   margin: 4px 0 0;
-  color: #909399;
-  font-size: 12px;
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .result-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px;
+  padding: 20px;
 }
 
 .annotated-frame {
@@ -934,13 +1109,7 @@ export default {
 }
 
 .record-description {
-  padding: 12px 2px 0;
-}
-
-.record-description h4 {
-  margin: 0 0 10px;
-  color: #303133;
-  font-size: 16px;
+  padding: 16px 0 0;
 }
 
 .record-meta-grid {
@@ -954,46 +1123,55 @@ export default {
   align-items: center;
   justify-content: space-between;
   min-height: 48px;
-  padding: 9px 11px;
-  border-radius: 6px;
-  border: 1px solid #e5e9f0;
-  background: #f7f9fc;
-  line-height: 1.4;
+  padding: 8px 12px;
+  border-radius: var(--ui-radius-control);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-muted);
+  line-height: 1.375rem;
 }
 
 .record-meta-item span {
   flex: none;
-  margin-right: 10px;
-  color: #606266;
-  font-size: 12px;
+  margin-right: 12px;
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
 }
 
 .record-meta-item strong {
   min-width: 0;
-  color: #303133;
+  color: var(--ui-foreground);
   text-align: right;
   word-break: break-word;
+  font-size: 0.875rem;
   font-weight: 500;
-  font-size: 13px;
+  line-height: 1.375rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .result-guidance {
-  margin-top: 10px;
+  margin-top: 16px;
 }
 
 .result-guidance > p {
   margin: 0;
-  color: #606266;
-  line-height: 1.6;
+  color: var(--ui-foreground);
+  line-height: 1.375rem;
 }
 
 .tips-list {
-  margin: 10px 0 0;
-  padding: 10px 10px 10px 30px;
-  color: #606266;
-  background: #fff8e8;
-  border-radius: 4px;
-  line-height: 1.7;
+  margin: 12px 0 0;
+  padding: 12px 12px 12px 32px;
+  color: var(--ui-foreground);
+  background: var(--ui-muted);
+  border: 1px solid var(--ui-border);
+  border-left: 2px solid var(--ui-warning);
+  border-radius: var(--ui-radius-popover);
+  line-height: 1.375rem;
+}
+
+.tips-list li + li {
+  margin-top: 8px;
 }
 
 .history-section {
@@ -1005,28 +1183,91 @@ export default {
 }
 
 .history-title {
-  min-height: 46px;
-  padding-top: 7px;
-  padding-bottom: 7px;
+  min-height: 48px;
 }
 
 .history-table-wrap {
+  padding: 16px 20px;
+}
+
+.history-table-wrap >>> .el-table {
+  color: var(--ui-foreground);
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-popover);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+.history-table-wrap >>> .el-table th,
+.history-table-wrap >>> .el-table td {
+  padding: 6px 0;
+  border-bottom-color: var(--ui-border);
+}
+
+.history-table-wrap >>> .el-table th {
+  color: var(--ui-muted-foreground);
+  background: var(--ui-muted);
+  font-weight: 500;
+}
+
+.history-table-wrap >>> .el-table td {
+  background: var(--ui-card);
+}
+
+.history-table-wrap >>> .el-table .cell {
+  min-height: 24px;
   padding: 0 12px;
+  line-height: 1.375rem;
+}
+
+.history-table-wrap >>> .el-table th .cell {
+  line-height: 1.25rem;
 }
 
 .history-table-wrap >>> .el-table__row {
   cursor: pointer;
 }
 
+.history-table-wrap >>> .el-table--striped .el-table__row--striped > td,
+.history-table-wrap >>> .el-table__body tr:hover > td,
+.history-table-wrap >>> .el-table__body tr.hover-row > td,
 .history-table-wrap >>> .selected-history-row > td {
-  background: #ecf5ff !important;
+  background: var(--ui-muted) !important;
+}
+
+.history-table-wrap >>> .selected-history-row > td:first-child {
+  box-shadow: inset 2px 0 0 var(--ui-primary);
+}
+
+.history-table-wrap >>> .el-table::before,
+.history-table-wrap >>> .el-table__fixed-right::before {
+  background: var(--ui-border);
+}
+
+.history-table-wrap >>> .el-table__fixed-right {
+  background: var(--ui-card);
+}
+
+.history-table-wrap >>> .el-button--text {
+  min-height: 2rem;
+  padding: 4px 0;
+  color: var(--ui-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.history-table-wrap >>> .el-button--text:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .history-thumb {
   width: 82px;
   height: 44px;
   display: block;
-  border-radius: 3px;
+  border-radius: var(--ui-radius-badge);
   object-fit: cover;
   background: #111;
 }
@@ -1037,32 +1278,144 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  background: #f2f4f7;
-  color: #909399;
-  font-size: 11px;
+  border-radius: var(--ui-radius-badge);
+  background: var(--ui-muted);
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.history-table-wrap >>> .el-table__empty-text {
+  width: 100%;
+  color: var(--ui-muted-foreground);
+  line-height: 1.375rem;
+}
+
+.history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+.history-empty > span {
+  color: var(--ui-foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
 }
 
 .history-pagination {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 14px 14px;
-  border-top: 1px solid #edf0f5;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--ui-border);
+}
+
+.history-pagination >>> .el-pagination {
+  color: var(--ui-foreground);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.history-pagination >>> .el-pagination button,
+.history-pagination >>> .el-pager li {
+  box-sizing: border-box;
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: var(--ui-radius-control);
+  color: var(--ui-foreground);
+  background: var(--ui-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 2rem;
+}
+
+.history-pagination >>> .el-pager li:not(.disabled).active {
+  color: var(--ui-primary-foreground);
+  background: var(--ui-primary);
+}
+
+.history-pagination >>> .el-pagination__total {
+  color: var(--ui-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 2rem;
 }
 
 .config-alert {
   position: absolute;
   z-index: 60;
-  left: 354px;
-  right: 14px;
-  bottom: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  left: 356px;
+  right: 16px;
+  bottom: 16px;
+  color: var(--ui-foreground);
+  background: var(--ui-card);
+  border: 1px solid var(--ui-warning);
+  border-radius: var(--ui-radius-popover);
+  padding: 12px 16px;
+  box-shadow: none;
+}
+
+.config-alert >>> .el-alert__icon {
+  color: var(--ui-warning);
+}
+
+.config-alert >>> .el-alert__title {
+  color: var(--ui-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.config-alert >>> .el-alert__description {
+  margin: 4px 0 0;
+  color: var(--ui-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(36, 198, 107, 0.5); }
-  70% { box-shadow: 0 0 0 8px rgba(36, 198, 107, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(36, 198, 107, 0); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ui-success) 50%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .toolbar-actions >>> .el-button,
+  .result-header-actions >>> .el-button,
+  .history-table-wrap >>> .el-button--text {
+    min-height: 2.75rem;
+    padding-inline: 12px;
+  }
+
+  .toolbar-actions >>> .el-input__inner {
+    height: 2.75rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .toolbar-actions >>> .el-input__icon {
+    line-height: 2.75rem;
+  }
+
+  .history-pagination >>> .el-pagination button,
+  .history-pagination >>> .el-pager li {
+    min-width: 2.75rem;
+    height: 2.75rem;
+    line-height: 2.75rem;
+  }
+
+  .history-pagination >>> .el-pagination__total {
+    line-height: 2.75rem;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -1076,12 +1429,30 @@ export default {
     overflow-y: auto;
   }
 
+  .section-toolbar,
+  .result-header,
+  .history-title {
+    padding: 16px;
+  }
+
+  .result-body {
+    padding: 16px;
+  }
+
   .history-section {
     grid-column: 1;
   }
 
+  .history-table-wrap {
+    padding: 16px;
+  }
+
+  .history-pagination {
+    padding: 12px 16px 16px;
+  }
+
   .config-alert {
-    left: 304px;
+    left: 306px;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <div id="operationsForSystemInfo" class="app-container" style="margin: 100px 200px">
-    <el-descriptions v-for="(value, key) in systemInfoList" :key="key" :title="key" :column="2" :loading="loading" style="margin-bottom: 30px">
+  <div id="operationsForSystemInfo" class="app-container operations-system-info-page">
+    <el-descriptions v-for="(value, key) in systemInfoList" :key="key" :title="key" :column="2" :loading="loading" class="operations-system-description">
       <el-descriptions-item v-for="(childValue, childKey) in value" :key="childKey">
         <template slot="label">
           <span>{{ childKey }}</span>
@@ -43,3 +43,42 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.operations-system-description {
+  margin-block-end: 32px;
+  padding: 20px;
+  color: var(--ui-foreground);
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: none;
+}
+
+.operations-system-description >>> .el-descriptions__title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+
+.operations-system-description >>> .el-descriptions__body {
+  color: var(--ui-foreground);
+  background: transparent;
+}
+
+.operations-system-description >>> .el-descriptions-item__label {
+  color: var(--ui-muted-foreground);
+  font-weight: 500;
+}
+
+.operations-system-description >>> .el-descriptions-item__content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.operations-system-description a {
+  color: var(--ui-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+</style>

@@ -101,14 +101,14 @@
             size="medium"
             icon="el-icon-delete"
             type="text"
-            style="color: #f56c6c"
+            style="color: var(--ui-destructive)"
             @click="deleteDevice(scope.row)"
           >删除
           </el-button>
           <el-divider direction="vertical" />
           <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
             <el-button size="medium" type="text">
-              更多功能<i class="el-icon-arrow-down el-icon--right" />
+              更多功能<ui-icon name="ChevronDown" :size="16" class="el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="params" :disabled="!scope.row.status">

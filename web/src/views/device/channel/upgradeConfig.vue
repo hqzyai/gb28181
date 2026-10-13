@@ -58,7 +58,8 @@ export default {
 .reboot-section h4 {
   margin: 0 0 12px;
   font-weight: 600;
-  font-size: 14px;
-  color: #303133;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--ui-foreground);
 }
 </style>

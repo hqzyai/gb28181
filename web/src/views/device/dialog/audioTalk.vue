@@ -36,7 +36,7 @@
               <el-radio-button :label="true">喊话</el-radio-button>
               <el-radio-button :label="false">对讲</el-radio-button>
             </el-radio-group>
-            <p style="color: #909399; font-size: 14px; margin-top: 4px;">
+            <p style="color: var(--ui-muted-foreground); font-size: .875rem; margin-top: 4px;">
               {{ talkMode ? '单向喊话，仅向设备发送语音' : '双向语音交互，可听到设备声音' }}
             </p>
           </div>
@@ -46,10 +46,10 @@
               :disabled="talkStatus === -2"
               circle
               icon="el-icon-microphone"
-              style="font-size: 32px; padding: 24px;"
+              style="font-size: 2rem; padding: 24px;"
               @click="talkButtonClick()"
             />
-            <p style="margin-top: 16px; color: #606266;">
+            <p style="margin-top: 16px; color: var(--ui-muted-foreground);">
               <span v-if="talkStatus === -2">正在释放资源</span>
               <span v-if="talkStatus === -1">点击开始{{ talkMode ? '喊话' : '对讲' }}</span>
               <span v-if="talkStatus === 0">等待接通中...</span>
@@ -358,7 +358,7 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 16px 10px;
-  border-left: 1px solid #ebeef5;
+  border-left: 1px solid var(--ui-border);
 }
 .broadcast-panel > div:first-child {
   flex-shrink: 0;

@@ -5,19 +5,19 @@
       <div class="config-sidebar">
         <el-menu :default-active="activeTab" @select="handleMenuSelect">
           <el-menu-item index="base">
-            <i class="iconfont icon-wxbzhuye" style="margin-right: 10px" />
+            <ui-icon name="House" :size="16" style="margin-right: 8px;" />
             <span>基础属性</span>
           </el-menu-item>
           <el-menu-item index="alarm">
-            <i class="iconfont icon-baojing" style="margin-right: 10px" />
+            <ui-icon name="Bell" :size="16" style="margin-right: 8px;" />
             <span>报警配置</span>
           </el-menu-item>
           <el-menu-item index="recordControl">
-            <i class="iconfont icon-record1" style="margin-right: 10px" />
+            <ui-icon name="Video" :size="16" style="margin-right: 8px;" />
             <span>录像控制</span>
           </el-menu-item>
           <el-menu-item index="upgrade">
-            <i class="iconfont icon-shangchuan" style="margin-right: 10px" />
+            <ui-icon name="Wrench" :size="16" style="margin-right: 8px;" />
             <span>设备运维</span>
           </el-menu-item>
         </el-menu>
@@ -73,7 +73,7 @@ export default {
 .config-sidebar {
   width: 160px;
   flex: none;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--ui-border);
 }
 .config-sidebar .el-menu {
   border-right: none;
@@ -88,7 +88,8 @@ export default {
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #909399;
-  font-size: 16px;
+  color: var(--ui-muted-foreground);
+  font-size: 1rem;
+  line-height: 1.5rem;
 }
 </style>

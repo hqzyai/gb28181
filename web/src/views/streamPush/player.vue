@@ -110,8 +110,8 @@ export default {
 .player-side { flex: 3; min-width: 0; }
 .player-container { width: 100%; height: calc(75vh - 80px); }
 .control-side { flex: 2; min-width: 340px; display: flex; flex-direction: column; overflow-y: auto; }
-.info-card { border-radius: 6px; padding: 12px; border: 1px solid #e8eaed; }
-.info-card__title { font-size: 18px; font-weight: 600; color: #303133; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e8eaed;text-align: center; }
+.info-card { border-radius: var(--ui-radius-card); padding: 12px; border: 1px solid var(--ui-border); }
+.info-card__title { font-size: 1rem; line-height: 1.5rem; font-weight: 600; color: var(--ui-foreground); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--ui-border);text-align: center; }
 .info-card--fill { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .info-card--fill .info-card__body { flex: 1; overflow: auto; }
 .info-card--bottom { flex-shrink: 0; margin-top: auto; }

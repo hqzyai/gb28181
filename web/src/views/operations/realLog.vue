@@ -1,6 +1,6 @@
 <template>
-  <div id="log" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+  <div id="log" class="app-container operations-real-log-page">
+    <div class="operations-real-log-content">
       <showLog ref="recordVideoPlayer" :remote-url="removeUrl" />
     </div>
   </div>
@@ -38,3 +38,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.operations-real-log-content {
+  height: calc(100vh - 124px);
+  color: var(--ui-foreground);
+}
+</style>

@@ -5,23 +5,23 @@
       <div class="config-sidebar">
         <el-menu :default-active="activeTab" @select="handleMenuSelect">
           <el-menu-item index="preset">
-            <i class="iconfont icon-yuzhidian" style="margin-right: 8px" />
+            <ui-icon name="MapPin" :size="16" style="margin-right: 8px;" />
             <span>预置点</span>
           </el-menu-item>
           <el-menu-item index="cruise">
-            <i class="iconfont icon-xunhuan" style="margin-right: 8px" />
+            <ui-icon name="Repeat" :size="16" style="margin-right: 8px;" />
             <span>巡航组</span>
           </el-menu-item>
           <el-menu-item index="scan">
-            <i class="iconfont icon-slider-right" style="margin-right: 8px" />
+            <ui-icon name="ScanLine" :size="16" style="margin-right: 8px;" />
             <span>线性扫描</span>
           </el-menu-item>
           <el-menu-item index="guard">
-            <i class="iconfont icon-kanshouwei" style="margin-right: 8px" />
+            <ui-icon name="Shield" :size="16" style="margin-right: 8px;" />
             <span>看守位</span>
           </el-menu-item>
           <el-menu-item index="switch">
-            <i class="iconfont icon-yushua" style="margin-right: 8px" />
+            <ui-icon name="ToggleLeft" :size="16" style="margin-right: 8px;" />
             <span>辅助开关</span>
           </el-menu-item>
         </el-menu>
@@ -85,7 +85,7 @@ export default {
 .config-sidebar {
   width: 140px;
   flex: none;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--ui-border);
   overflow-y: auto;
 }
 .config-sidebar .el-menu {
@@ -101,7 +101,7 @@ export default {
   flex: none;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--ui-border);
   padding: 0 12px;
 }
 .tab-panel {

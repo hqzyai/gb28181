@@ -7,7 +7,7 @@
       width: 100%;
       height: 100vh;
       display: flex;
-      background-image: url(/static/images/bg19.webp);
+      background: var(--ui-muted);
       background-position: center center;
       background-repeat: no-repeat;
       background-size: cover;"
@@ -52,7 +52,7 @@
           </span>
         </el-form-item>
 
-        <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
+        <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:0;" @click.native.prevent="handleLogin">登录</el-button>
 
       </el-form>
     </div>
@@ -137,121 +137,37 @@ export default {
 </script>
 
 <style lang="scss">
-/* 修复input 背景不协调 和光标变色 */
-/* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
-
-$bg:#283443;
-$light_gray:#fff;
-$cursor: #fff;
-
-@supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
-  .login-container .el-input input {
-    color: $cursor;
-  }
-}
-
-/* reset element-ui css */
 .login-container {
   margin: 0;
   width: 100%;
-  height: 100%;
-  user-select: none;
-  .el-input {
-    display: inline-block;
-    height: 47px;
-    width: 85%;
-
-    input {
-      background: transparent;
-      border: 0px;
-      -webkit-appearance: none;
-      border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
-      caret-color: $cursor;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
-      }
-    }
+  min-height: 100%;
+  background: var(--ui-muted);
+  .el-input { display: inline-block; width: calc(100% - 40px); }
+  .el-input input {
+    color: var(--ui-foreground);
+    background: var(--ui-background);
+    caret-color: var(--ui-foreground);
+    padding-inline-end: 2rem;
+    &:-webkit-autofill { -webkit-text-fill-color: var(--ui-foreground); box-shadow: 0 0 0 1000px var(--ui-background) inset; }
   }
-
-  .el-form-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    color: #454545;
-  }
+  .el-form-item { margin-bottom: 1rem; }
 }
 </style>
 
 <style lang="scss" scoped>
-$bg: #162e46;
-$dark_gray:#eee;
-$light_gray:#eee;
-
 .login-container {
-  min-height: 100%;
-  width: 100%;
-  background-color: $bg;
-  overflow: hidden;
-
   .login-form {
     position: relative;
     width: 448px;
-    max-width: 100%;
-    height: 63vh;
-    padding: 160px 35px 0;
+    max-width: calc(100% - 2rem);
+    padding: 2rem;
     margin: 0 auto;
-    overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid rgba(160, 174, 192, 0.25);
-    -webkit-backdrop-filter: blur(30px);
-    backdrop-filter: blur(30px);
+    background: var(--ui-card);
+    border-radius: var(--ui-radius-card);
+    border: 1px solid var(--ui-border);
   }
-
-  .tips {
-    font-size: 14px;
-    color: #fff;
-    margin-bottom: 10px;
-
-    span {
-      &:first-of-type {
-        margin-right: 16px;
-      }
-    }
-  }
-
-  .svg-container {
-    padding: 6px 5px 6px 15px;
-    color: $dark_gray;
-    vertical-align: middle;
-    width: 30px;
-    display: inline-block;
-  }
-
-  .title-container {
-    position: relative;
-
-    .title {
-      font-size: 26px;
-      color: $light_gray;
-      margin: 0px auto 40px auto;
-      text-align: center;
-      font-weight: bold;
-    }
-  }
-
-  .show-pwd {
-    position: absolute;
-    right: 10px;
-    top: 7px;
-    font-size: 16px;
-    color: $dark_gray;
-    cursor: pointer;
-    user-select: none;
-  }
+  .svg-container { color: var(--ui-muted-foreground); vertical-align: middle; width: 32px; display: inline-block; }
+  .title-container .title { font-size: 1.75rem; line-height: 2.25rem; color: var(--ui-foreground); margin: 0 auto 2rem; text-align: center; font-weight: 600; }
+  .show-pwd { position: absolute; right: 8px; top: 0; min-width: 24px; min-height: 36px; color: var(--ui-muted-foreground); cursor: pointer; display: inline-flex; align-items: center; }
 }
 </style>

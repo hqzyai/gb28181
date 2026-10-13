@@ -1,20 +1,29 @@
+@import '../assets/fonts/fonts.css';
+@import './tokens.scss';
 @import './variables.scss';
 @import './mixin.scss';
 @import './transition.scss';
 @import './element-ui.scss';
 @import './sidebar.scss';
 @import './iconfont.scss';
+@import './lucide.scss';
+@import './unified-ui.scss';
 
 body {
   height: 100%;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: var(--ui-font-body);
+  font-size: .875rem;
+  line-height: 1.375rem;
+  font-synthesis: none;
+  color: var(--ui-foreground);
+  background: var(--ui-background);
 }
 
 label {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 html {
@@ -32,10 +41,6 @@ html {
   box-sizing: inherit;
 }
 
-a:focus,
-a:active {
-  outline: none;
-}
 
 a,
 a:focus,
@@ -45,9 +50,6 @@ a:hover {
   text-decoration: none;
 }
 
-div:focus {
-  outline: none;
-}
 
 .clearfix {
   &:after {
@@ -62,7 +64,7 @@ div:focus {
 
 // main-container global css
 .app-container {
-  padding: 20px;
+  padding: 1.5rem;
 }
 
 .iconfont-14 {

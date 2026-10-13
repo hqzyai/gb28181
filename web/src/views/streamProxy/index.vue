@@ -57,7 +57,7 @@
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag v-clipboard="scope.row.srcUrl" size="medium" @success="$message({type:'success', message:'成功拷贝到粘贴板'})">
-                <i class="el-icon-document-copy" title="点击拷贝" />
+                <ui-icon name="Copy" :size="16" title="点击拷贝" />
                 {{ scope.row.srcUrl }}
               </el-tag>
             </div>
@@ -76,7 +76,7 @@
         <el-table-column label="拉流状态" min-width="100">
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag v-if="scope.row.pulling && myServerId !== scope.row.serverId" size="medium" style="border-color: #ecf1af">正在拉流</el-tag>
+              <el-tag v-if="scope.row.pulling && myServerId !== scope.row.serverId" size="medium" style="border-color: var(--ui-warning)">正在拉流</el-tag>
               <el-tag v-if="scope.row.pulling && myServerId === scope.row.serverId" size="medium">正在拉流</el-tag>
               <el-tag v-if="!scope.row.pulling" size="medium" type="info">尚未拉流</el-tag>
             </div>
@@ -85,7 +85,7 @@
         <el-table-column label="启用" min-width="100">
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag v-if="scope.row.enable && myServerId !== scope.row.serverId" size="medium" style="border-color: #ecf1af">已启用</el-tag>
+              <el-tag v-if="scope.row.enable && myServerId !== scope.row.serverId" size="medium" style="border-color: var(--ui-warning)">已启用</el-tag>
               <el-tag v-if="scope.row.enable && myServerId === scope.row.serverId" size="medium">已启用</el-tag>
               <el-tag v-if="!scope.row.enable" size="medium" type="info">未启用</el-tag>
             </div>
@@ -96,7 +96,7 @@
           <template v-slot:default="scope">
             <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical" />
-            <el-button v-if="scope.row.pulling" size="medium" icon="el-icon-switch-button" style="color: #f56c6c" type="text" @click="stopPlay(scope.row)">停止</el-button>
+            <el-button v-if="scope.row.pulling" size="medium" icon="el-icon-switch-button" style="color: var(--ui-destructive)" type="text" @click="stopPlay(scope.row)">停止</el-button>
             <el-divider v-if="scope.row.pulling" direction="vertical" />
             <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">
               编辑
@@ -104,7 +104,7 @@
             <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像</el-button>
             <el-divider direction="vertical" />
-            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
+            <el-button size="medium" icon="el-icon-delete" type="text" style="color: var(--ui-destructive)" @click="deleteStreamProxy(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

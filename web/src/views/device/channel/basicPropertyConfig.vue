@@ -126,7 +126,7 @@ export default {
 }
 
 .readonly-field {
-  color: #606266;
+  color: var(--ui-foreground);
   line-height: 32px;
 }
 </style>

@@ -2,7 +2,7 @@
   <div>
     <el-form label-width="120px" class="guard-form">
       <el-form-item label="启用">
-        <el-switch v-model="enabled" />
+        <el-switch :width="32" v-model="enabled" />
       </el-form-item>
       <el-form-item label="预置位">
         <el-select v-model="presetIndex" style="width: 180px" placeholder="选择预置位">

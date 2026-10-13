@@ -34,25 +34,25 @@
           <el-form-item label="地址" prop="url">
             <div style="width: 100%" v-if="rtc" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtc)">
-                <i class="el-icon-document-copy"/>
+                <ui-icon name="Copy" :size="16" />
                 {{ rtc }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtsp" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtsp)">
-                <i class="el-icon-document-copy"/>
+                <ui-icon name="Copy" :size="16" />
                 {{ rtsp }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtmp" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtmp)">
-                <i class="el-icon-document-copy"/>
+                <ui-icon name="Copy" :size="16" />
                 {{ rtmp }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtcs" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtcs)">
-                <i class="el-icon-document-copy" />
+                <ui-icon name="Copy" :size="16" />
                 {{ rtcs }}
               </el-tag>
             </div>

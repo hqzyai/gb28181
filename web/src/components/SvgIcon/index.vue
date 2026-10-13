@@ -1,5 +1,6 @@
 <template>
   <div v-if="isExternal" :style="styleExternalIcon" class="svg-external-icon svg-icon" v-on="$listeners" />
+  <ui-icon v-else-if="lucideName" :name="lucideName" :size="16" :class="svgClass" v-on="$listeners" />
   <svg v-else :class="svgClass" aria-hidden="true" v-on="$listeners">
     <use :xlink:href="iconName" />
   </svg>
@@ -7,10 +8,13 @@
 
 <script>
 // doc: https://panjiachen.github.io/vue-element-admin-site/feature/component/svg-icon.html#usage
+import UiIcon from '@/components/UiIcon'
+import sources from '@/assets/lucide/sources.json'
 import { isExternal } from '@/utils/validate'
 
 export default {
   name: 'SvgIcon',
+  components: { UiIcon },
   props: {
     iconClass: {
       type: String,
@@ -22,6 +26,9 @@ export default {
     }
   },
   computed: {
+    lucideName() {
+      return sources.legacySvgMapping[this.iconClass]
+    },
     isExternal() {
       return isExternal(this.iconClass)
     },
@@ -50,8 +57,17 @@ export default {
   width: 1em;
   height: 1em;
   vertical-align: -0.15em;
-  fill: currentColor;
+  fill: none;
   overflow: hidden;
+}
+
+.svg-icon:not(.ui-icon) {
+  fill: currentColor;
+}
+
+.ui-icon.svg-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .svg-external-icon {

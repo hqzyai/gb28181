@@ -1,5 +1,5 @@
 <template>
-  <div id="regionTree" style="border-right: 1px solid #EBEEF5; height: 100%; display: flex; flex-direction: column;">
+  <div id="regionTree" style="border-right: 1px solid var(--ui-border); height: 100%; display: flex; flex-direction: column;">
     <div style="padding: 0 20px 0 10px; flex-shrink: 0;">
       <el-input size="small" v-model="searchStr" @input="searchChange" suffix-icon="el-icon-search" placeholder="请输入搜索内容" clearable>
 <!--        <el-select v-model="searchType" slot="prepend" placeholder="搜索类型" style="width: 80px">-->
@@ -16,7 +16,7 @@
         type="info"
         style="text-align: left"
       />
-      <div v-if="edit" style="margin-top: 18px;font-size: 14px;position: absolute;left: 309px;z-index: 100;" >
+      <div v-if="edit" style="margin-top: 18px;font-size: .875rem;position: absolute;left: 309px;z-index: 100;" >
         显示编号： <el-checkbox v-model="showCode" />
       </div>
 
@@ -37,22 +37,22 @@
           <span class="custom-tree-node">
             <span
               v-if="node.data.type === 0 && chooseId !== node.data.deviceId"
-              style="color: #409EFF"
+              style="color: var(--ui-foreground)"
               class="iconfont icon-bianzubeifen3"
             />
             <span
               v-if="node.data.type === 0 && chooseId === node.data.deviceId"
-              style="color: #c60135;"
+              style="color: var(--ui-foreground); background: var(--ui-selected-background); outline: 1px solid var(--ui-ring); border-radius: var(--ui-radius-badge);"
               class="iconfont icon-bianzubeifen3"
             />
             <span
               v-if="node.data.type === 1 && node.data.status === 'ON'"
-              style="color: #409EFF"
+              style="color: var(--ui-foreground)"
               class="iconfont icon-shexiangtou2"
             />
             <span
               v-if="node.data.type === 1 && node.data.status !== 'ON'"
-              style="color: #808181"
+              style="color: var(--ui-muted-foreground)"
               class="iconfont icon-shexiangtou2"
             />
             <span
@@ -65,22 +65,22 @@
         </template>
       </vue-easy-tree>
     </div>
-    <div v-if="searchStr" style="color: #606266; flex: 1; min-height: 0; overflow: auto;">
+    <div v-if="searchStr" style="color: var(--ui-muted-foreground); flex: 1; min-height: 0; overflow: auto;">
       <ul v-if="regionList.length > 0" style="list-style: none; margin: 0; padding: 10px">
         <li v-for="item in regionList" :key="item.id" class="channel-list-li" style="height: 26px; align-items: center;cursor: pointer;" @click="listClickHandler(item)">
           <span
             v-if="chooseId !== item.deviceId"
-            style="color: #409EFF;  font-size: 20px"
+            style="color: var(--ui-foreground);  font-size: 20px"
             class="iconfont icon-bianzubeifen3"
           />
           <span
             v-if="chooseId === item.deviceId"
-            style="color: #c60135;  font-size: 20px"
+            style="color: var(--ui-foreground);  font-size: 20px"
             class="iconfont icon-bianzubeifen3"
           />
           <div>
-            <div style="margin-left: 4px; margin-bottom: 3px; font-size: 15px">{{item.name}}</div>
-            <div style="margin-left: 4px; font-size: 13px; color: #808181">{{item.deviceId}}</div>
+            <div style="margin-left: 4px; margin-bottom: 3px; font-size: .875rem">{{item.name}}</div>
+            <div style="margin-left: 4px; font-size: .75rem; color: var(--ui-muted-foreground)">{{item.deviceId}}</div>
           </div>
         </li>
       </ul>
@@ -89,17 +89,17 @@
         <li v-for="item in channelList" :key="item.id" class="channel-list-li" @click="channelLstClickHandler(item)" @contextmenu.prevent="contextmenuEventHandlerForLi($event, item)">
           <span
             v-if="item.gbStatus === 'ON'"
-            style="color: #409EFF; font-size: 20px"
+            style="color: var(--ui-foreground); font-size: 20px"
             class="iconfont icon-shexiangtou2"
           />
           <span
             v-if="item.gbStatus !== 'ON'"
-            style="color: #808181; font-size: 20px"
+            style="color: var(--ui-muted-foreground); font-size: 20px"
             class="iconfont icon-shexiangtou2"
           />
           <div>
-            <div style="margin-left: 4px; margin-bottom: 3px; font-size: 15px">{{item.gbName}}</div>
-            <div style="margin-left: 4px; font-size: 13px; color: #808181">{{item.gbDeviceId}}</div>
+            <div style="margin-left: 4px; margin-bottom: 3px; font-size: .875rem">{{item.gbName}}</div>
+            <div style="margin-left: 4px; font-size: .75rem; color: var(--ui-muted-foreground)">{{item.gbDeviceId}}</div>
           </div>
 
         </li>

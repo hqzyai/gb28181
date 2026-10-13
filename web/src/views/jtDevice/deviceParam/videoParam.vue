@@ -175,7 +175,8 @@ export default {
 <style scoped>
   >>> .el-slider__marks-text {
     margin-top: 6px;
-    font-size: 12px;
+    font-size: .75rem;
+    line-height: 1.125rem;
     width: 2rem !important;
 }
 </style>

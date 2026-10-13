@@ -87,7 +87,7 @@
         <el-table-column prop="stream" label="流ID" min-width="200" />
         <el-table-column label="推流状态" min-width="100">
           <template v-slot:default="scope">
-            <el-tag v-if="scope.row.pushing && myServerId !== scope.row.serverId" size="medium" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag v-if="scope.row.pushing && myServerId !== scope.row.serverId" size="medium" style="border-color: var(--ui-warning)">推流中</el-tag>
             <el-tag v-if="scope.row.pushing && myServerId === scope.row.serverId" size="medium">推流中</el-tag>
             <el-tag v-if="!scope.row.pushing" size="medium" type="info">已停止</el-tag>
           </template>
@@ -119,7 +119,7 @@
             <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" type="text" @click="playPush(scope.row)">播放
             </el-button>
             <el-divider direction="vertical" />
-            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deletePush(scope.row.id)">删除</el-button>
+            <el-button size="medium" icon="el-icon-delete" type="text" style="color: var(--ui-destructive)" @click="deletePush(scope.row.id)">删除</el-button>
             <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-position" type="text" @click="edit(scope.row)">
               编辑

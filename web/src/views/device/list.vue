@@ -73,7 +73,7 @@
       </el-table-column>
       <el-table-column label="通道数" min-width="80">
         <template v-slot:default="scope">
-          <span style="font-size: 1rem">{{ scope.row.channelCount }}</span>
+          <span style="font-size: .875rem">{{ scope.row.channelCount }}</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" min-width="80">
@@ -82,7 +82,7 @@
             <el-tag
               v-if="scope.row.onLine && myServerId !== scope.row.serverId"
               size="medium"
-              style="border-color: #ecf1af"
+              style="border-color: var(--ui-warning)"
             >在线
             </el-tag>
             <el-tag v-if="scope.row.onLine && myServerId === scope.row.serverId" size="medium">在线
@@ -116,19 +116,17 @@
             type="text"
             size="mini"
             :disabled="scope.row.online===0"
-            icon="iconfont-14 icon-xintiao"
             title="心跳时间统计"
             @click="getKeepaliveTimeStatistics(scope.row.deviceId)"
-          >心跳
+          ><ui-icon name="Activity" :size="16" style="margin-right: 8px;" />心跳
           </el-button>
           <el-button
             type="text"
             size="mini"
             :disabled="scope.row.online===0"
-            icon="iconfont-14 icon-register"
             title="注册时间统计"
             @click="getRegisterTimeStatistics(scope.row.deviceId)"
-          >注册
+          ><ui-icon name="LogIn" :size="16" style="margin-right: 8px;" />注册
           </el-button>
         </template>
       </el-table-column>
@@ -154,7 +152,7 @@
           <el-divider direction="vertical" />
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical" />
-          <el-button size="medium" type="text" style="color: #f56c6c" @click="deleteDevice(scope.row)">删除</el-button>
+          <el-button size="medium" type="text" style="color: var(--ui-destructive)" @click="deleteDevice(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

@@ -88,17 +88,18 @@ export default {
 .alarm-section {
   width: 380px;
   flex-shrink: 0;
-  border: 1px solid #e6e6e6;
-  border-radius: 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
   padding: 16px;
 }
 
 .section-header {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 1rem;
+  line-height: 1.5rem;
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--ui-border);
 }
 
 .alarm-section .el-select,

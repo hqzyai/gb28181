@@ -63,19 +63,20 @@ export default {
   height: 50px;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  background: var(--ui-background);
+  border-bottom: 1px solid var(--ui-border);
+  box-shadow: none;
 
   .hamburger-container {
     line-height: 46px;
     height: 100%;
     float: left;
     cursor: pointer;
-    transition: background .3s;
+    transition: background-color 120ms;
     -webkit-tap-highlight-color:transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      background: var(--ui-accent)
     }
   }
 
@@ -88,40 +89,37 @@ export default {
     height: 100%;
     line-height: 50px;
 
-    &:focus {
-      outline: none;
-    }
 
     .right-menu-item {
       display: inline-block;
       padding: 0 8px;
       height: 100%;
-      font-size: 18px;
-      color: #5a5e66;
+      font-size: .875rem;
+      color: var(--ui-muted-foreground);
       vertical-align: text-bottom;
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background-color 120ms;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          background: var(--ui-accent)
         }
       }
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 32px;
 
       .avatar-wrapper {
-        margin-top: 5px;
+        margin-top: 4px;
         position: relative;
         cursor: pointer;
         .user-avatar {
           cursor: pointer;
           width: 40px;
           height: 40px;
-          border-radius: 10px;
+          border-radius: 50%;
         }
 
         .el-icon-caret-bottom {
@@ -129,7 +127,7 @@ export default {
           position: absolute;
           right: -20px;
           top: 19px;
-          font-size: 12px;
+          font-size: .75rem;
         }
       }
     }

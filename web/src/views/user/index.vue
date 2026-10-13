@@ -1,9 +1,9 @@
 <template>
-  <div id="app" class="app-container">
-    <div style="height: calc(100vh - 124px);">
-      <el-form :inline="true" size="mini">
+  <div id="app" class="app-container user-management-page">
+    <div class="user-page-content">
+      <el-form :inline="true" size="mini" class="user-toolbar">
         <el-form-item>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addUser">
+          <el-button icon="el-icon-plus" size="mini" type="primary" @click="addUser">
             添加用户
           </el-button>
         </el-form-item>
@@ -15,7 +15,7 @@
       <el-table
         size="small"
         :data="userList"
-        style="width: 100%;font-size: 12px;"
+        class="user-table"
         height="calc(100% - 64px)"
         header-row-class-name="table-header"
       >
@@ -34,7 +34,7 @@
               size="medium"
               icon="el-icon-delete"
               type="text"
-              style="color: #f56c6c"
+              class="user-destructive-action"
               @click="deleteUser(scope.row)"
             >删除
             </el-button>
@@ -42,7 +42,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
-        style="text-align: right"
+        class="user-pagination"
         :current-page="currentPage"
         :page-size="count"
         :page-sizes="[15, 25, 35, 50]"
@@ -185,3 +185,29 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.user-page-content {
+  height: calc(100vh - 124px);
+  color: var(--ui-foreground);
+}
+
+.user-table {
+  width: 100%;
+}
+
+.user-toolbar >>> .el-form-item {
+  margin-inline-end: 8px;
+}
+
+.el-button.user-destructive-action:not(.is-disabled),
+.el-button.user-destructive-action:not(.is-disabled):hover,
+.el-button.user-destructive-action:not(.is-disabled):focus,
+.el-button.user-destructive-action:not(.is-disabled):active {
+  color: var(--ui-destructive);
+}
+
+.user-pagination {
+  text-align: right;
+}
+</style>

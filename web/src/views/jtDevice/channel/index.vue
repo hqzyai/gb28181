@@ -43,14 +43,14 @@
                   @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
                 >
                   <div slot="error" class="image-slot">
-                    <i class="el-icon-picture-outline" />
+                    <ui-icon name="Image" :size="24" />
                   </div>
                 </el-image>
               </template>
             </el-table-column>
             <el-table-column label="开启音频" min-width="100">
               <template slot-scope="scope">
-                <el-switch v-model="scope.row.hasAudio" active-color="#409EFF" @change="updateChannel(scope.row)" />
+                <el-switch :width="32" v-model="scope.row.hasAudio" active-color="var(--ui-primary)" @change="updateChannel(scope.row)" />
               </template>
             </el-table-column>
             <el-table-column label="操作" min-width="340" fixed="right">
@@ -69,7 +69,7 @@
                   :disabled="device == null || !device.status"
                   icon="el-icon-switch-button"
                   type="text"
-                  style="color: #f56c6c"
+                  style="color: var(--ui-destructive)"
                   @click="stopDevicePush(scope.row)"
                 >停止
                 </el-button>
@@ -93,7 +93,7 @@
                 <el-divider direction="vertical" />
                 <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                   <el-button size="medium" type="text">
-                    更多功能<i class="el-icon-arrow-down el-icon--right" />
+                    更多功能<ui-icon name="ChevronDown" :size="16" class="el-icon--right" />
                   </el-button>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item command="records" :disabled="device == null || !device.status">

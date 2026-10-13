@@ -204,36 +204,38 @@ export default {
 .tags-view-container {
   height: 34px;
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
+  background: var(--ui-background);
+  border-bottom: 1px solid var(--ui-border);
+  box-shadow: none;
   .tags-view-wrapper {
     .tags-view-item {
       display: inline-block;
       position: relative;
       cursor: pointer;
-      height: 26px;
+      min-height: 26px;
       line-height: 26px;
-      border: 1px solid #d8dce5;
-      color: #495060;
-      background: #fff;
+      border: 1px solid var(--ui-border);
+      color: var(--ui-muted-foreground);
+      background: var(--ui-background);
       padding: 0 8px;
-      font-size: 12px;
-      margin-left: 5px;
+      border-radius: var(--ui-radius-control);
+      font-weight: 500;
+      font-size: .875rem;
+      margin-left: 4px;
       margin-top: 4px;
       &:first-of-type {
-        margin-left: 15px;
+        margin-left: 16px;
       }
       &:last-of-type {
-        margin-right: 15px;
+        margin-right: 16px;
       }
       &.active {
-        background-color: #42b983;
-        color: #fff;
-        border-color: #42b983;
+        background-color: var(--ui-selected-background);
+        color: var(--ui-foreground);
+        border-color: var(--ui-ring);
         &::before {
           content: '';
-          background: #fff;
+          background: var(--ui-ring);
           display: inline-block;
           width: 8px;
           height: 8px;
@@ -246,22 +248,22 @@ export default {
   }
   .contextmenu {
     margin: 0;
-    background: #fff;
+    background: var(--ui-background);
     z-index: 3000;
     position: absolute;
     list-style-type: none;
-    padding: 5px 0;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 4px;
+    border-radius: var(--ui-radius-popover);
+    font-size: .875rem;
     font-weight: 400;
-    color: #333;
-    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
+    color: var(--ui-foreground);
+    box-shadow: var(--ui-shadow-popover);
     li {
       margin: 0;
-      padding: 7px 16px;
+      padding: 6px 8px;
       cursor: pointer;
       &:hover {
-        background: #eee;
+        background: var(--ui-accent);
       }
     }
   }
@@ -276,18 +278,18 @@ export default {
       width: 16px;
       height: 16px;
       vertical-align: 2px;
-      border-radius: 50%;
+      border-radius: var(--ui-radius-badge);
       text-align: center;
-      transition: all .3s cubic-bezier(.645, .045, .355, 1);
+      transition: background-color 120ms, color 120ms;
       transform-origin: 100% 50%;
       &:before {
-        transform: scale(.6);
+        
         display: inline-block;
-        vertical-align: -3px;
+        vertical-align: middle;
       }
       &:hover {
-        background-color: #b4bccc;
-        color: #fff;
+        background-color: var(--ui-accent);
+        color: var(--ui-foreground);
       }
     }
   }

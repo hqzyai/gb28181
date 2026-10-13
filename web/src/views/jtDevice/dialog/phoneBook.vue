@@ -48,7 +48,7 @@
             <el-button
               size="medium"
               type="text"
-              style="color: #f56c6c"
+              style="color: var(--ui-destructive)"
               icon="el-icon-delete"
               :loading="scope.row.addRegionLoading"
               @click="removeRow(scope.$index)"
@@ -67,7 +67,7 @@
         :auto-upload="false"
         :show-file-list="false"
         :on-change="loadFiled">
-        <i class="el-icon-upload"></i>
+        <ui-icon name="Upload" :size="24" style="margin: 40px 0 16px;" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <div class="el-upload__tip" slot="tip">只能上传xls/xlsx文件</div>
       </el-upload>
