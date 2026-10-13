@@ -241,6 +241,35 @@
 .el-date-table td.disabled div { color: var(--ui-muted-foreground); background: var(--ui-muted); }
 .el-date-picker__header-label, .el-picker-panel__icon-btn, .el-date-table th { color: var(--ui-foreground); }
 .el-date-table th, .el-picker-panel__footer, .el-date-picker__time-header { border-color: var(--ui-border); }
+.el-link { font-size: .875rem; font-weight: 500; color: var(--ui-primary); }
+.el-link.el-link--primary, .el-link.el-link--default { color: var(--ui-primary); }
+.el-link.el-link--danger { color: var(--ui-destructive); }
+.el-link.el-link--success { color: var(--ui-success); }
+.el-link.el-link--warning { color: var(--ui-warning); }
+.el-link:not(.is-disabled):hover { color: var(--ui-primary); }
+.el-link.is-underline:hover::after { border-color: currentColor; }
+.el-link.is-disabled { color: var(--ui-muted-foreground); opacity: .5; }
+.el-month-table, .el-year-table, .el-time-panel, .el-time-range-picker, .el-cascader-panel { font-family: var(--ui-font-body); font-size: .875rem; color: var(--ui-foreground); }
+.el-month-table td .cell, .el-year-table td .cell { color: var(--ui-foreground); }
+.el-month-table td.today .cell, .el-year-table td.today .cell, .el-month-table td.current:not(.disabled) .cell, .el-year-table td.current:not(.disabled) .cell { color: var(--ui-primary); font-weight: 500; }
+.el-month-table td .cell:hover, .el-year-table td .cell:hover { color: var(--ui-primary); background: var(--ui-accent); }
+.el-month-table td.in-range div { background: var(--ui-accent); }
+.el-month-table td.disabled .cell, .el-year-table td.disabled .cell { color: var(--ui-muted-foreground); background: var(--ui-muted); }
+.el-time-panel, .el-time-range-picker { background: var(--ui-popover); border-color: var(--ui-border); border-radius: var(--ui-radius-popover); box-shadow: var(--ui-shadow-popover); }
+.el-time-spinner__item { color: var(--ui-foreground); font-size: .875rem; }
+.el-time-spinner__item.active:not(.disabled) { color: var(--ui-primary); font-weight: 500; }
+.el-time-spinner__item:not(.disabled):not(.active):hover { background: var(--ui-accent); }
+.el-time-spinner__item.disabled { color: var(--ui-muted-foreground); opacity: .5; }
+.el-time-panel__footer { border-color: var(--ui-border); }
+.el-time-panel__btn, .el-time-panel__btn.confirm { color: var(--ui-primary); font-family: var(--ui-font-body); font-size: .875rem; font-weight: 500; }
+.el-cascader-node.in-active-path, .el-cascader-node.is-active { color: var(--ui-primary); font-weight: 500; }
+.el-input-number__increase, .el-input-number__decrease { color: var(--ui-foreground); background: var(--ui-secondary); border-color: var(--ui-input); }
+.el-input-number__increase:hover, .el-input-number__decrease:hover { color: var(--ui-primary); background: var(--ui-accent); }
+.el-input-number__increase.is-disabled, .el-input-number__decrease.is-disabled { color: var(--ui-muted-foreground); opacity: .5; }
+.el-tooltip__popper[x-placement^=bottom] .popper__arrow { border-bottom-color: var(--ui-border); }
+.el-tooltip__popper[x-placement^=bottom] .popper__arrow::after { border-bottom-color: var(--ui-popover); }
+.el-tooltip__popper[x-placement^=top] .popper__arrow { border-top-color: var(--ui-border); }
+.el-tooltip__popper[x-placement^=top] .popper__arrow::after { border-top-color: var(--ui-popover); }
 
 // Visible keyboard focus follows the original tab order and popup behavior.
 #app a:focus-visible, #app button:focus-visible, #app input:focus-visible,
@@ -268,6 +297,7 @@
   .fade-transform-enter-active, .fade-transform-leave-active,
   .breadcrumb-enter-active, .breadcrumb-leave-active, .breadcrumb-move { transition-duration: .01ms; }
   .el-icon-loading { animation: none; }
+  .el-loading-spinner .circular, .el-loading-spinner .path { animation: none; }
 }
 @media (pointer: coarse) {
   .el-button, .el-button--small, .el-button--mini { min-height: 2.75rem; }
