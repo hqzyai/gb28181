@@ -46,18 +46,20 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
+    hidden: true,
+    redirect: '/ai-analysis',
     children: [{
       path: 'dashboard',
       name: '控制台',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: '控制台', icon: 'dashboard', affix: true }
+      meta: { title: '控制台', icon: 'dashboard' }
     }]
   },
 
   {
     path: '/live',
     component: Layout,
+    hidden: true,
     redirect: '/live',
     children: [{
       path: '',
@@ -74,12 +76,13 @@ export const constantRoutes = [
       path: '',
       name: 'AiAnalysis',
       component: () => import('@/views/aiAnalysis/index'),
-      meta: { title: 'AI安全识别', icon: 'el-icon-cpu' }
+      meta: { title: 'AI安全识别', icon: 'el-icon-cpu', affix: true }
     }]
   },
   {
     path: '/channel',
     component: Layout,
+    hidden: true,
     redirect: '/channel',
     onlyIndex: 0,
     children: [{
@@ -99,6 +102,7 @@ export const constantRoutes = [
   {
     path: '/map',
     component: Layout,
+    hidden: true,
     redirect: '/map',
     children: [{
       path: '',
@@ -156,6 +160,7 @@ export const constantRoutes = [
   {
     path: '/commonChannel',
     component: Layout,
+    hidden: true,
     redirect: '/commonChannel/region',
     name: '组织结构',
     meta: { title: '组织结构', icon: 'tree' },
@@ -177,6 +182,7 @@ export const constantRoutes = [
   {
     path: '/alarm',
     component: Layout,
+    hidden: true,
     redirect: '/alarm',
     children: [
       {
@@ -190,6 +196,7 @@ export const constantRoutes = [
   {
     path: '/recordPlan',
     component: Layout,
+    hidden: true,
     redirect: '/recordPlan',
     children: [
       {
@@ -203,6 +210,7 @@ export const constantRoutes = [
   {
     path: '/cloudRecord',
     component: Layout,
+    hidden: true,
     redirect: '/cloudRecord',
     onlyIndex: 0,
     children: [
@@ -223,6 +231,7 @@ export const constantRoutes = [
   {
     path: '/mediaServer',
     component: Layout,
+    hidden: true,
     redirect: '/mediaServer',
     children: [
       {
@@ -236,6 +245,7 @@ export const constantRoutes = [
   {
     path: '/platform',
     component: Layout,
+    hidden: true,
     redirect: '/platform',
     children: [
       {
