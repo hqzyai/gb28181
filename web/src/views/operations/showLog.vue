@@ -175,9 +175,11 @@ export default {
   margin-inline-end: 8px;
 }
 
-.operations-log-content {
+.operations-log-viewer >>> .operations-log-content {
   height: calc(100% - 60px);
   font-family: var(--ui-font-mono);
+  font-size: .8125rem;
+  line-height: 1.25rem;
 }
 
 .log-loading {
