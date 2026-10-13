@@ -1,0 +1,16 @@
+ARG TORCH_IMAGE
+FROM ${TORCH_IMAGE}
+ENV PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    ULTRALYTICS_CONFIG_DIR=/work/cache/ultralytics \
+    MPLCONFIGDIR=/work/cache/matplotlib \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility OMP_NUM_THREADS=4
+RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+RUN python -m venv --system-site-packages /opt/ppe-venv
+ENV PATH=/opt/ppe-venv/bin:${PATH}
+RUN python -m pip install --no-cache-dir \
+    ultralytics==8.4.175 pillow==12.3.0
+RUN python -m pip check && python -m pip freeze > /opt/ppe-runtime.lock \
+    && python -c 'import torch, torchvision; assert torch.__version__.split("+")[0] == "2.12.1"; assert torchvision.__version__.split("+")[0] == "0.27.1"; assert torch.version.cuda == "13.0"'
+WORKDIR /work
+ENTRYPOINT ["python", "-u"]

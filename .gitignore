@@ -40,3 +40,24 @@ certificates
 /打包/
 /snap/
 /config/
+
+# PPE local runtime, private configuration and generated output
+/data/ai-history/
+/detector/test-reports/
+/detector/.venv/
+/detector/**/__pycache__/
+/ppe/data/
+/ppe/weights/
+/ppe/models/
+/ppe/runs/
+/ppe/reports/
+/ppe/cache/
+/ppe/datasets/
+/ppe/original/
+/ppe/secrets/
+/ppe/**/__pycache__/
+/docker/ppe/.env
+/docker/ppe/secrets/
+/docker/ppe/config/
+/docker/ppe/data/
+/docker/ppe/backups/

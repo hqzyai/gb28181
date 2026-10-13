@@ -16,6 +16,10 @@ public class AiAnalysisResult {
     private String analyzedAt;
     private Double videoTimeSeconds;
     private String model;
+    private String engine;
+    private String modelVersion;
+    private String modelSha256;
+    private String frameId;
     private int imageWidth;
     private int imageHeight;
     private long elapsedMs;

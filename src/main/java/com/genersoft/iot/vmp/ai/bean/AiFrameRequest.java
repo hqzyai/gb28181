@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class AiFrameRequest {
+    private String engine;
     private String channelId;
     private String channelName;
     private String imageData;

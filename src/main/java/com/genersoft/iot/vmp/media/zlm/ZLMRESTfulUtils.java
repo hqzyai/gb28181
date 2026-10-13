@@ -170,49 +170,52 @@ public class ZLMRESTfulUtils {
             return null;
         }
         HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
-
         httpBuilder.addQueryParameter("secret", mediaServer.getSecret());
         if (params != null) {
             for (Map.Entry<String, Object> param : params.entrySet()) {
                 httpBuilder.addQueryParameter(param.getKey(), param.getValue().toString());
             }
         }
-
-        Request request = new Request.Builder()
-                .url(httpBuilder.build())
-                .build();
-        if (log.isDebugEnabled()){
-            log.debug(request.toString());
-        }
-        byte[] result = null;
-        try {
-            OkHttpClient client = getClient();
-            Response response = client.newCall(request).execute();
-            if (response.isSuccessful()) {
-                if (targetPath != null) {
-                    File snapFolder = new File(targetPath);
-                    if (!snapFolder.exists()) {
-                        if (!snapFolder.mkdirs()) {
-                            log.warn("{}路径创建失败", snapFolder.getAbsolutePath());
-                        }
-                    }
-                    File snapFile = new File(targetPath + File.separator + fileName);
-                    FileOutputStream outStream = new FileOutputStream(snapFile);
-                    result = Objects.requireNonNull(response.body()).bytes();
-                    outStream.write(result);
-                    outStream.flush();
-                    outStream.close();
-                }
-            } else {
+        Request request = new Request.Builder().url(httpBuilder.build()).build();
+        // A bytes-only caller passes null paths. Reading the response must not depend on disk output.
+        // Bound streamed bodies as well as Content-Length before creating an optional file.
+        final long maxImageBytes = 3 * 1024 * 1024L;
+        try (Response response = getClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
                 log.error("[ {} ]请求失败: {} {}", url, response.code(), response.message());
+                return null;
             }
+            ResponseBody body = response.body();
+            if (body == null || body.contentLength() > maxImageBytes) {
+                log.warn("[ {} ]截图响应为空或超过大小限制", url);
+                return null;
+            }
+            okio.BufferedSource source = body.source();
+            source.request(maxImageBytes + 1);
+            if (source.getBuffer().size() > maxImageBytes) {
+                log.warn("[ {} ]截图响应超过大小限制", url);
+                return null;
+            }
+            byte[] result = source.getBuffer().clone().readByteArray();
+            // A null fileName previously wrote snap/null and required a writable workdir unnecessarily.
+            if (targetPath != null && !targetPath.isBlank() && fileName != null && !fileName.isBlank()) {
+                File snapFolder = new File(targetPath);
+                if (!snapFolder.exists() && !snapFolder.mkdirs()) {
+                    throw new IOException("snapshot directory could not be created");
+                }
+                File snapFile = new File(snapFolder, fileName);
+                try (FileOutputStream outStream = new FileOutputStream(snapFile)) {
+                    outStream.write(result);
+                }
+            }
+            return result;
         } catch (ConnectException e) {
-            log.error("连接ZLM失败: {}, {}", e.getCause().getMessage(), e.getMessage());
+            log.error("连接ZLM失败: {}", e.getMessage());
             log.info("请检查media配置并确认ZLM已启动...");
         } catch (IOException e) {
             log.error("[ {} ]请求失败: {}", url, e.getMessage());
         }
-        return result;
+        return null;
     }
 
     public ZLMResult<?> isMediaOnline(MediaServer mediaServer, String app, String stream, String schema){

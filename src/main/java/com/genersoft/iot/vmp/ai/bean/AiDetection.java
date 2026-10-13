@@ -5,6 +5,11 @@ import lombok.Data;
 @Data
 public class AiDetection {
     private String type;
+    private String classCode;
+    private String kind;
+    private String source;
+    private String modelVersion;
+    private boolean calibrated;
     private double confidence;
     private int x;
     private int y;

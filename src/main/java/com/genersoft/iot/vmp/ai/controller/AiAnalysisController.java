@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.ai.controller;
 
 import com.genersoft.iot.vmp.ai.bean.AiAnalysisResult;
 import com.genersoft.iot.vmp.ai.bean.AiFrameRequest;
+import com.genersoft.iot.vmp.ai.bean.AiTaskRequest;
+import com.genersoft.iot.vmp.ai.service.AiBackgroundTaskService;
 import com.genersoft.iot.vmp.ai.bean.AiHistoryPage;
 import com.genersoft.iot.vmp.ai.service.AiAnalysisService;
 import com.genersoft.iot.vmp.ai.service.AiHistoryService;
@@ -32,10 +34,12 @@ public class AiAnalysisController {
 
     private final AiAnalysisService aiAnalysisService;
     private final AiHistoryService aiHistoryService;
+    private final AiBackgroundTaskService tasks;
 
-    public AiAnalysisController(AiAnalysisService aiAnalysisService, AiHistoryService aiHistoryService) {
+    public AiAnalysisController(AiAnalysisService aiAnalysisService, AiHistoryService aiHistoryService, AiBackgroundTaskService tasks) {
         this.aiAnalysisService = aiAnalysisService;
         this.aiHistoryService = aiHistoryService;
+        this.tasks = tasks;
     }
 
     @GetMapping("/config")
@@ -51,6 +55,20 @@ public class AiAnalysisController {
         AiAnalysisResult result = aiAnalysisService.analyze(request, actor);
         return aiHistoryService.persistLive(request, result, actor);
     }
+
+    @PostMapping("/tasks/start")
+    public Map<String, Object> startTask(@RequestBody AiTaskRequest request, Principal principal) {
+        return tasks.start(request, principal == null ? "authenticated-user" : principal.getName());
+    }
+
+    @PostMapping("/tasks/{channelId}/stop")
+    public Map<String, Object> stopTask(@PathVariable int channelId) { return tasks.stop(channelId); }
+
+    @GetMapping("/tasks/{channelId}")
+    public Map<String, Object> taskStatus(@PathVariable int channelId) { return tasks.status(channelId); }
+
+    @GetMapping("/tasks/{channelId}/latest")
+    public Map<String, Object> taskLatest(@PathVariable int channelId) { return tasks.latest(channelId); }
 
     @GetMapping("/history")
     @Operation(summary = "按摄像头分页查询历史识别记录")

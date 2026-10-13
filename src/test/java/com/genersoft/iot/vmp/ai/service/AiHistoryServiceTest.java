@@ -76,6 +76,23 @@ class AiHistoryServiceTest {
         assertEquals(List.of(), service.findChannelsByNameContaining("  "));
     }
 
+    @Test
+    void readsYoloEnvelopeAndKeepsLegacyArrayCompatible() {
+        AiHistoryMapper mapper = mock(AiHistoryMapper.class);
+        AiHistoryService service = new AiHistoryService(mapper, mock(AiHistoryStorage.class), new AiAnalysisConfig());
+        when(mapper.findChannelById(35)).thenReturn(channel());
+        when(mapper.countByChannelId(35)).thenReturn(1L);
+        AiHistoryEntity entity = historyEntity();
+        entity.setDetectionsJson("{\"schemaVersion\":2,\"engine\":\"yolo\",\"modelVersion\":\"ppe-v1\",\"frameId\":\"f1\",\"detections\":[{\"type\":\"安全帽\",\"kind\":\"object\",\"source\":\"yolo\",\"confidence\":0.9}]}");
+        when(mapper.findPage(35, 10, 0L)).thenReturn(List.of(entity));
+        var result = service.list("35", 1).getList().get(0);
+        assertEquals("yolo", result.getEngine());
+        assertEquals("ppe-v1", result.getModelVersion());
+        assertEquals("object", result.getDetections().get(0).getKind());
+        entity.setDetectionsJson("[]");
+        assertEquals("vision", service.list("35", 1).getList().get(0).getEngine());
+    }
+
     private static AiChannelContext channel() {
         AiChannelContext context = new AiChannelContext();
         context.setChannelId(35);

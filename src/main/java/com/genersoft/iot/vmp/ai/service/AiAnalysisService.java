@@ -70,12 +70,14 @@ public class AiAnalysisService {
     );
 
     private final AiAnalysisConfig config;
+    private final YoloDetectorClient yoloClient;
     private final OkHttpClient httpClient;
     private final Semaphore concurrencyGuard;
     private final Cache<String, Long> recentRequests;
     private final Object rateLimitMonitor = new Object();
 
-    public AiAnalysisService(AiAnalysisConfig config) {
+    public AiAnalysisService(AiAnalysisConfig config, YoloDetectorClient yoloClient) {
+        this.yoloClient = yoloClient;
         this.config = config;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(Math.max(1, config.getConnectTimeoutSeconds()), TimeUnit.SECONDS)
@@ -92,8 +94,10 @@ public class AiAnalysisService {
     }
 
     public AiAnalysisResult analyze(AiFrameRequest frameRequest, String actor) {
-        validateConfiguration();
-        enforceRateLimit(actor);
+        String engine = normalizeEngine(frameRequest == null ? null : frameRequest.getEngine());
+        if (!"yolo".equals(engine)) validateConfiguration();
+        else if (!config.isYoloConfigured()) throw new ControllerException(ErrorCode.ERROR400.getCode(), "YOLO 服务未配置或未启用");
+        enforceRateLimit(actor, engine);
         ValidatedFrame frame = validateFrame(frameRequest);
         if (!concurrencyGuard.tryAcquire()) {
             throw new ControllerException(ErrorCode.ERROR486.getCode(), "AI 分析任务繁忙，请稍后重试");
@@ -101,12 +105,28 @@ public class AiAnalysisService {
 
         long startedAt = System.nanoTime();
         try {
-            ModelResponse response = callVisionModel(frame);
-            List<AiDetection> detections = parseDetections(
-                    response.content(), frame.width(), frame.height(),
-                    config.getReviewThreshold(), config.getAlertThreshold()
-            );
-            return buildResult(frameRequest, frame, response, detections, startedAt);
+            String frameId = UUID.randomUUID().toString();
+            JSONObject yolo = null;
+            List<AiDetection> detections = new ArrayList<>();
+            if (!"vision".equals(engine)) {
+                yolo = yoloClient.detect(frame.imageData(), frameId, frameRequest.getCapturedAt());
+                detections.addAll(YoloDetectorClient.parseBoxes(yolo, frame.width(), frame.height(), config.getYoloConfidence()));
+            }
+            ModelResponse response = new ModelResponse("[]", 0, 0, 0);
+            if (!"yolo".equals(engine)) {
+                response = callVisionModel(frame);
+                List<AiDetection> visionDetections = parseDetections(response.content(), frame.width(), frame.height(),
+                        config.getReviewThreshold(), config.getAlertThreshold());
+                visionDetections.forEach(detection -> detection.setModelVersion(config.getModel()));
+                detections.addAll(visionDetections);
+            }
+            AiAnalysisResult result = buildResult(frameRequest, frame, response, detections, startedAt);
+            result.setEngine(engine); result.setFrameId(frameId);
+            result.setModelVersion(yolo == null ? config.getModel() : yolo.getString("modelVersion"));
+            result.setModelSha256(yolo == null ? null : yolo.getString("modelSha256"));
+            result.setModel("vision".equals(engine) ? config.getModel() : "hybrid".equals(engine)
+                    ? yolo.getString("modelVersion") + " + " + config.getModel() : yolo.getString("modelVersion"));
+            return result;
         } finally {
             concurrencyGuard.release();
         }
@@ -115,7 +135,17 @@ public class AiAnalysisService {
     public Map<String, Object> publicConfig() {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("enabled", config.isEnabled());
-        result.put("configured", config.isConfigured());
+        Map<String, Object> yolo = yoloClient.publicModel();
+        boolean yoloReady = Boolean.TRUE.equals(yolo.get("ready"));
+        result.put("configured", config.isConfigured() || yoloReady);
+        result.put("defaultEngine", config.getDefaultEngine());
+        result.put("engines", List.of(
+                Map.of("id", "vision", "label", "多模态场景分析", "ready", config.isConfigured()),
+                Map.of("id", "yolo", "label", "YOLO PPE 目标检测", "ready", yoloReady),
+                Map.of("id", "hybrid", "label", "YOLO + 多模态", "ready", yoloReady && config.isConfigured())));
+        result.put("yolo", yolo);
+        result.put("yoloConfidence", config.getYoloConfidence());
+        result.put("taskIntervalSeconds", Math.max(1, config.getTaskIntervalSeconds()));
         result.put("model", config.getModel() == null ? "" : config.getModel());
         result.put("defaultIntervalSeconds", Math.max(5, config.getDefaultIntervalSeconds()));
         result.put("minRequestIntervalSeconds", Math.max(1, config.getMinRequestIntervalSeconds()));
@@ -123,6 +153,13 @@ public class AiAnalysisService {
         result.put("alertThreshold", config.getAlertThreshold());
         result.put("maxConcurrent", Math.max(1, config.getMaxConcurrent()));
         return result;
+    }
+
+    static String normalizeEngine(String engine) {
+        String value = engine == null || engine.isBlank() ? "vision" : engine.trim().toLowerCase(Locale.ROOT);
+        if (!List.of("vision", "yolo", "hybrid").contains(value))
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "不支持的识别引擎");
+        return value;
     }
 
     private void validateConfiguration() {
@@ -145,10 +182,10 @@ public class AiAnalysisService {
         }
     }
 
-    private void enforceRateLimit(String actor) {
-        String key = trimToLength(actor == null ? "authenticated-user" : actor, 200);
+    private void enforceRateLimit(String actor, String engine) {
+        String key = engine + ":" + trimToLength(actor == null ? "authenticated-user" : actor, 200);
         long now = System.nanoTime();
-        long minimumIntervalNanos = TimeUnit.SECONDS.toNanos(Math.max(1, config.getMinRequestIntervalSeconds()));
+        long minimumIntervalNanos = TimeUnit.SECONDS.toNanos("yolo".equals(engine) ? 1 : Math.max(1, config.getMinRequestIntervalSeconds()));
         synchronized (rateLimitMonitor) {
             Long previous = recentRequests.getIfPresent(key);
             if (previous != null && now - previous < minimumIntervalNanos) {
@@ -405,6 +442,8 @@ public class AiAnalysisService {
 
             AiDetection detection = new AiDetection();
             detection.setType(riskType);
+            detection.setKind("risk");
+            detection.setSource("vision");
             detection.setConfidence(Math.round(confidence * 10_000D) / 10_000D);
             detection.setX(normalizedX);
             detection.setY(normalizedY);
@@ -441,23 +480,24 @@ public class AiAnalysisService {
         result.setTotalTokens(response.totalTokens());
         result.setSource("LIVE");
 
-        if (detections.isEmpty()) {
+        List<AiDetection> risks = detections.stream().filter(item -> !"object".equals(item.getKind()) && !"unknown".equals(item.getKind())).toList();
+        if (risks.isEmpty()) {
             result.setStatus("正常");
             result.setRiskName("未识别到明显风险");
             result.setConfidence(0D);
-            result.setSummary("当前帧未识别到置信度达到阈值的施工安全风险，请结合后续视频帧持续复核。");
+            result.setSummary("当前帧检测到 " + detections.size() + " 个目标，未检出达到阈值的疑似风险。未检出不代表已验证符合安全要求。");
             result.setTips(List.of("继续观察后续画面变化", "对遮挡或远距离目标建议人工复核"));
             return result;
         }
 
-        AiDetection top = detections.get(0);
+        AiDetection top = risks.stream().max(Comparator.comparingDouble(AiDetection::getConfidence)).orElseThrow();
         result.setConfidence(top.getConfidence());
-        boolean hasAlert = detections.stream().anyMatch(item -> "自动告警".equals(item.getStatus()));
-        long reviewCount = detections.stream().filter(item -> "人工复核".equals(item.getStatus())).count();
+        boolean hasAlert = risks.stream().anyMatch(item -> "自动告警".equals(item.getStatus()));
+        long reviewCount = risks.stream().filter(item -> "人工复核".equals(item.getStatus())).count();
         result.setStatus(hasAlert ? "自动告警" : "人工复核");
         result.setRiskName(top.getType());
         result.setSummary(hasAlert
-                ? "检测到 " + detections.size() + " 个风险区域" + (reviewCount > 0 ? "，其中 " + reviewCount + " 个需要人工复核。" : "，请立即核查处置。")
+                ? "检测到 " + risks.size() + " 个风险区域" + (reviewCount > 0 ? "，其中 " + reviewCount + " 个需要人工复核。" : "，请立即核查处置。")
                 : "检测到 " + reviewCount + " 个疑似风险区域，证据尚未达到自动告警阈值，请人工复核。"
         );
         result.setTips(tipsFor(top.getType()));

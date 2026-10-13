@@ -36,3 +36,19 @@ export function getAiHistoryImage(analysisId) {
     timeout: 30000
   })
 }
+
+export function startAiTask(channelId, intervalSeconds) {
+  return request({ method: 'post', url: '/api/ai/tasks/start', data: { channelId: Number(channelId), intervalSeconds }, timeout: 15000 })
+}
+
+export function stopAiTask(channelId) {
+  return request({ method: 'post', url: '/api/ai/tasks/' + encodeURIComponent(channelId) + '/stop', timeout: 15000 })
+}
+
+export function getAiTask(channelId) {
+  return request({ method: 'get', url: '/api/ai/tasks/' + encodeURIComponent(channelId), timeout: 15000 })
+}
+
+export function getAiTaskLatest(channelId) {
+  return request({ method: 'get', url: '/api/ai/tasks/' + encodeURIComponent(channelId) + '/latest', timeout: 15000 })
+}

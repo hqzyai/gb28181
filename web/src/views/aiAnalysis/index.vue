@@ -13,20 +13,23 @@
             <span v-if="selectedChannelId" class="channel-id">{{ selectedChannelId }}</span>
           </div>
           <div class="toolbar-actions">
+            <el-select v-model="engine" size="mini" class="engine-select" :disabled="running || analyzing" @change="changeEngine">
+              <el-option v-for="item in engines" :key="item.id" :label="item.label + (item.ready ? '' : '（未就绪）')" :value="item.id" :disabled="!item.ready" />
+            </el-select>
             <el-select v-model="playerType" size="mini" class="player-select" :disabled="running">
               <el-option label="Jessibuca" value="jessibuca" />
               <el-option label="WebRTC" value="webRTC" />
               <el-option label="H265web" value="h265web" />
             </el-select>
-            <el-select v-model="intervalSeconds" size="mini" class="interval-select" :disabled="running">
-              <el-option v-for="seconds in intervalOptions" :key="seconds" :label="seconds + ' 秒/帧'" :value="seconds" />
+            <el-select v-model="intervalSeconds" size="mini" class="interval-select" :disabled="running" @change="changeInterval">
+              <el-option v-for="seconds in availableIntervalOptions" :key="seconds" :label="seconds + ' 秒/帧'" :value="seconds" />
             </el-select>
             <el-button
               v-if="!running"
               type="primary"
               size="mini"
               icon="el-icon-video-play"
-              :disabled="!streamInfo || !aiConfigured"
+              :disabled="!streamInfo || !selectedEngineReady"
               @click="startAnalysis"
             >开始识别</el-button>
             <el-button
@@ -40,8 +43,8 @@
               size="mini"
               icon="el-icon-camera"
               :loading="analyzing"
-              :disabled="!streamInfo || !aiConfigured || running"
-              @click="analyzeOnce"
+              :disabled="!streamInfo || !selectedEngineReady || running"
+              @click="analyzeOnce()"
             >识别一帧</el-button>
           </div>
         </div>
@@ -61,21 +64,28 @@
           />
           <div v-if="running || analyzing" class="analysis-running-badge">
             <span class="pulse-dot" />
-            {{ analyzing ? '正在分析当前视频帧' : 'AI 持续识别中' }}
+            {{ analyzing ? '正在分析当前视频帧' : engine === 'yolo' ? taskState.error ? 'YOLO 检测重试中' : 'YOLO 后台持续检测中' : 'AI 持续识别中' }}
           </div>
+        </div>
+        <div v-if="engine === 'yolo'" class="engine-note">
+          关闭页面后后台检测仍继续。右侧显示最新抽帧标记，蓝色为目标，橙色为待复核风险。
+          <span v-if="taskState.error" class="task-error">{{ taskState.error }}</span>
         </div>
       </section>
 
       <section class="result-section panel-card">
         <div class="result-header">
           <div>
-            <h3>识别结果</h3>
-            <p v-if="latestResult">{{ formatTime(latestResult.analyzedAt) }} · 耗时 {{ latestResult.elapsedMs }} ms</p>
+            <h3>{{ selectedHistoryAnalysisId ? '历史识别记录' : '识别结果' }}</h3>
+            <p v-if="latestResult">{{ formatTime(latestResult.capturedAt || latestResult.analyzedAt) }} · {{ latestResult.engine || 'vision' }} · 耗时 {{ latestResult.elapsedMs }} ms</p>
             <p v-else>识别结果会在这里实时更新</p>
           </div>
-          <el-tag v-if="latestResult" :type="statusTagType(latestResult.status)" effect="dark">
-            {{ latestResult.status }}
-          </el-tag>
+          <div class="result-header-actions">
+            <el-button v-if="selectedHistoryAnalysisId" size="mini" type="primary" plain @click="returnToLive">返回实时结果</el-button>
+            <el-tag v-if="latestResult" :type="statusTagType(latestResult.status)" effect="dark">
+              {{ latestResult.status }}
+            </el-tag>
+          </div>
         </div>
 
         <div v-if="latestFrame && latestResult" class="result-body">
@@ -85,15 +95,17 @@
               v-for="(box, index) in latestResult.detections"
               :key="index"
               class="risk-box"
-              :class="box.status === '自动告警' ? 'alert-box' : 'review-box'"
+              :class="detectionBoxClass(box)"
               :style="boxStyle(box, latestResult)"
             >
-              <span>{{ box.type }} {{ Math.round(box.confidence * 100) }}%</span>
+              <span>{{ box.type }} {{ Math.round(box.confidence * 100) }}% · {{ box.source || 'vision' }}</span>
             </div>
           </div>
 
           <div class="record-description">
-            <h4>历史识别记录</h4>
+            <h4>目标与风险</h4>
+            <p class="detection-count">目标 {{ objectCount }} 个 · 疑似风险 {{ riskCount }} 个 · {{ latestResult.modelVersion || latestResult.model }}</p>
+            <el-tag v-for="(item, index) in latestResult.detections" :key="'object-' + index" size="mini" :type="item.kind === 'object' ? 'info' : 'warning'" class="detection-tag">{{ item.type }} {{ formatConfidence(item.confidence) }}{{ item.kind === 'risk' ? ' · ' + item.status : '' }}</el-tag>
             <div class="record-meta-grid">
               <div class="record-meta-item">
                 <span>工地：</span>
@@ -127,8 +139,8 @@
 
         <div v-else class="empty-result">
           <i class="el-icon-cpu" />
-          <p>选择通道并点击“开始识别”</p>
-          <span>系统会按设定间隔从正在播放的 GB28181 视频中抽帧分析</span>
+          <p>{{ taskState.error || '选择通道并点击“开始识别”' }}</p>
+          <span>{{ taskState.error ? '本帧识别未完成，请等待自动重试或检查服务状态' : '系统会按设定间隔从正在播放的 GB28181 视频中抽帧分析' }}</span>
         </div>
       </section>
 
@@ -155,6 +167,7 @@
               <template slot-scope="scope">{{ formatTime(scope.row.analyzedAt) }}</template>
             </el-table-column>
             <el-table-column prop="siteName" label="工地" min-width="150" show-overflow-tooltip />
+            <el-table-column label="引擎" width="90"><template slot-scope="scope">{{ scope.row.engine || 'vision' }}</template></el-table-column>
             <el-table-column prop="riskName" label="风险类型" min-width="190" show-overflow-tooltip />
             <el-table-column label="处理状态" width="110">
               <template slot-scope="scope">
@@ -194,7 +207,7 @@
       type="warning"
       :closable="false"
       show-icon
-      description="请在服务器环境变量中配置 AI_ANALYSIS_ENABLED、AI_ANALYSIS_API_URL、AI_ANALYSIS_API_KEY 和 AI_ANALYSIS_MODEL。"
+      description="请联系管理员检查识别引擎状态，再刷新页面。"
     />
   </div>
 </template>
@@ -202,7 +215,7 @@
 <script>
 import DeviceTree from '@/views/common/DeviceTree.vue'
 import PlayerTabs from '@/views/common/playerTabs.vue'
-import { analyzeVideoFrame, getAiAnalysisConfig, getAiHistory, getAiHistoryImage } from '@/api/aiAnalysis'
+import { analyzeVideoFrame, getAiAnalysisConfig, getAiHistory, getAiHistoryImage, startAiTask, stopAiTask, getAiTask, getAiTaskLatest } from '@/api/aiAnalysis'
 
 export default {
   name: 'AiAnalysis',
@@ -211,6 +224,11 @@ export default {
     return {
       configLoaded: false,
       aiConfigured: false,
+      engine: 'vision',
+      engines: [],
+      taskState: {},
+      taskPollTimer: null,
+      lastHistoryRefresh: 0,
       selectedChannelId: '',
       selectedChannelName: '',
       streamInfo: null,
@@ -218,7 +236,10 @@ export default {
       streamError: '',
       playerType: 'jessibuca',
       intervalSeconds: 10,
-      intervalOptions: [5, 10, 15, 30, 60],
+      visionIntervalSeconds: 10,
+      yoloIntervalSeconds: 2,
+      minRequestIntervalSeconds: 3,
+      intervalOptions: [2, 5, 10, 15, 30, 60],
       running: false,
       analyzing: false,
       analysisTimer: null,
@@ -227,11 +248,30 @@ export default {
       currentVideoTimeMs: null,
       latestFrame: null,
       latestResult: null,
+      latestLiveFrame: null,
+      latestLiveResult: null,
+      selectedHistoryAnalysisId: '',
+      pinnedHistoryImageUrl: '',
       history: [],
       historyLoading: false,
       historyPage: 1,
       historyPageSize: 10,
       historyTotal: 0
+    }
+  },
+  computed: {
+    availableIntervalOptions() {
+      const minimum = this.engine === 'yolo' ? 1 : Math.max(3, this.minRequestIntervalSeconds)
+      return this.intervalOptions.filter(seconds => seconds >= minimum && (this.engine !== 'yolo' || seconds <= 60))
+    },
+    selectedEngineReady() {
+      return this.engines.some(item => item.id === this.engine && item.ready)
+    },
+    objectCount() {
+      return this.latestResult ? (this.latestResult.detections || []).filter(item => item.kind === 'object').length : 0
+    },
+    riskCount() {
+      return this.latestResult ? (this.latestResult.detections || []).filter(item => !['object', 'unknown'].includes(item.kind)).length : 0
     }
   },
   created() {
@@ -242,8 +282,9 @@ export default {
     this.loadConfig()
   },
   beforeDestroy() {
-    this.stopAnalysis(false)
+    this.detachMonitoring()
     this.requestGeneration += 1
+    this.clearHistorySelection()
     this.revokeHistoryUrls()
     const player = this.$refs.player
     if (player && player.destroy) player.destroy()
@@ -254,12 +295,23 @@ export default {
         const response = await getAiAnalysisConfig()
         const data = response && response.data ? response.data : {}
         this.aiConfigured = Boolean(data.configured)
-        if (data.defaultIntervalSeconds) {
-          const interval = Number(data.defaultIntervalSeconds)
-          if (!this.intervalOptions.includes(interval)) this.intervalOptions.push(interval)
-          this.intervalOptions.sort((a, b) => a - b)
-          this.intervalSeconds = interval
+        this.engines = Array.isArray(data.engines) ? data.engines : [{ id: 'vision', label: '多模态场景分析', ready: this.aiConfigured }]
+        if (!this.running) {
+          if (this.engines.some(item => item.id === data.defaultEngine && item.ready)) this.engine = data.defaultEngine
+          else if (!this.selectedEngineReady) this.engine = (this.engines.find(item => item.ready) || { id: 'vision' }).id
         }
+        const minimum = Number(data.minRequestIntervalSeconds)
+        this.minRequestIntervalSeconds = Number.isInteger(minimum) && minimum > 0 ? Math.max(3, minimum) : 3
+        const taskInterval = Number(data.taskIntervalSeconds)
+        const visionInterval = Number(data.defaultIntervalSeconds)
+        if (!this.running) {
+          this.yoloIntervalSeconds = Number.isInteger(taskInterval) && taskInterval >= 1 && taskInterval <= 60 ? taskInterval : 2
+          this.visionIntervalSeconds = Number.isInteger(visionInterval) && visionInterval >= this.minRequestIntervalSeconds
+            ? visionInterval : Math.max(10, this.minRequestIntervalSeconds)
+          this.intervalSeconds = this.engine === 'yolo' ? this.yoloIntervalSeconds : this.visionIntervalSeconds
+        }
+        this.ensureIntervalOption(this.yoloIntervalSeconds)
+        this.ensureIntervalOption(this.visionIntervalSeconds)
       } catch (error) {
         this.aiConfigured = false
       } finally {
@@ -267,7 +319,8 @@ export default {
       }
     },
     async handleChannelClick(channelId, channel) {
-      this.stopAnalysis(false)
+      this.detachMonitoring()
+      this.taskState = {}
       this.requestGeneration += 1
       this.selectedChannelId = String(channelId || '')
       this.selectedChannelName = channel && (channel.name || channel.gbName)
@@ -277,14 +330,14 @@ export default {
       this.streamError = ''
       this.streamLoading = true
       this.currentVideoTimeMs = null
-      this.latestFrame = null
-      this.latestResult = null
+      this.resetResultState()
       this.revokeHistoryUrls()
       this.history = []
       this.historyPage = 1
       this.historyTotal = 0
       const generation = this.requestGeneration
       this.loadHistory(1, generation)
+      this.restoreTask(generation)
       try {
         const data = await this.$store.dispatch('commonChanel/playChannel', channelId)
         if (generation !== this.requestGeneration || this._isBeingDestroyed) return
@@ -298,18 +351,107 @@ export default {
         if (generation === this.requestGeneration) this.streamLoading = false
       }
     },
-    startAnalysis() {
-      if (!this.streamInfo || !this.aiConfigured || this.running) return
+    async restoreTask(generation) {
+      try {
+        const response = await getAiTask(this.selectedChannelId)
+        if (generation !== this.requestGeneration || this._isBeingDestroyed) return
+        this.taskState = response.data || {}
+        if (this.taskState.running) {
+          this.engine = 'yolo'
+          this.syncTaskInterval(this.taskState)
+          this.running = true
+          this.pollTask(generation)
+        }
+      } catch (error) {
+        if (generation === this.requestGeneration) this.taskState = { error: '后台任务状态读取失败：' + this.errorMessage(error) }
+      }
+    },
+    async startAnalysis() {
+      if (!this.streamInfo || !this.selectedEngineReady || this.running) return
+      if (this.engine === 'yolo') {
+        try {
+          const generation = this.requestGeneration
+          const response = await startAiTask(this.selectedChannelId, this.intervalSeconds)
+          if (generation !== this.requestGeneration || this._isBeingDestroyed) return
+          this.resetResultState()
+          this.taskState = response.data || {}
+          this.syncTaskInterval(this.taskState)
+          this.running = Boolean(this.taskState.running)
+          this.pollTask(generation)
+        } catch (error) { this.$message.error('后台检测启动失败：' + this.errorMessage(error)) }
+        return
+      }
+      this.resetResultState()
       this.running = true
       this.scheduleNextAnalysis(0)
     },
-    stopAnalysis(showMessage = true) {
-      this.running = false
-      if (this.analysisTimer) {
-        clearTimeout(this.analysisTimer)
-        this.analysisTimer = null
+    async stopAnalysis(showMessage = true, clearHistoryPin = true) {
+      const generation = this.requestGeneration
+      if (this.engine === 'yolo' && this.running) {
+        try {
+          const response = await stopAiTask(this.selectedChannelId)
+          if (generation !== this.requestGeneration || this._isBeingDestroyed) return
+          this.taskState = response.data || {}
+        } catch (error) { this.$message.error('后台检测停止失败：' + this.errorMessage(error)); return }
       }
+      this.detachMonitoring()
+      if (clearHistoryPin) this.returnToLive()
       if (showMessage) this.$message.info('已停止持续识别')
+    },
+    detachMonitoring() {
+      this.running = false
+      if (this.analysisTimer) clearTimeout(this.analysisTimer)
+      if (this.taskPollTimer) clearTimeout(this.taskPollTimer)
+      this.analysisTimer = null
+      this.taskPollTimer = null
+    },
+    async pollTask(generation) {
+      if (!this.running || generation !== this.requestGeneration || this._isBeingDestroyed) return
+      try {
+        const responses = await Promise.all([getAiTask(this.selectedChannelId), getAiTaskLatest(this.selectedChannelId)])
+        if (!this.running || generation !== this.requestGeneration || this._isBeingDestroyed) return
+        this.taskState = responses[0].data || {}
+        this.syncTaskInterval(this.taskState)
+        this.running = Boolean(this.taskState.running)
+        const latest = responses[1].data || {}
+        if (latest.ready && latest.imageData && latest.result) {
+          this.updateLiveResult({ dataUrl: latest.imageData }, latest.result)
+        } else {
+          if (latest.error) this.taskState = Object.assign({}, this.taskState, { error: latest.error })
+          this.clearLiveResult()
+        }
+        if (Date.now() - this.lastHistoryRefresh > 30000) {
+          this.lastHistoryRefresh = Date.now()
+          this.loadHistory(1, generation, '', false)
+        }
+      } catch (error) {
+        if (!this.running || generation !== this.requestGeneration || this._isBeingDestroyed) return
+        this.taskState = Object.assign({}, this.taskState, { error: '后台状态读取失败：' + this.errorMessage(error) })
+        this.clearLiveResult()
+      }
+      if (this.running && generation === this.requestGeneration) {
+        this.taskPollTimer = setTimeout(() => this.pollTask(generation), 2000)
+      }
+    },
+    ensureIntervalOption(interval) {
+      if (!this.intervalOptions.includes(interval)) this.intervalOptions.push(interval)
+      this.intervalOptions.sort((a, b) => a - b)
+    },
+    syncTaskInterval(state) {
+      const interval = Number(state.intervalSeconds)
+      if (!Number.isInteger(interval) || interval < 1 || interval > 60) return
+      this.yoloIntervalSeconds = interval
+      this.ensureIntervalOption(interval)
+      if (this.engine === 'yolo') this.intervalSeconds = interval
+    },
+    changeInterval(interval) {
+      if (this.engine === 'yolo') this.yoloIntervalSeconds = interval
+      else this.visionIntervalSeconds = Math.max(this.minRequestIntervalSeconds, Number(interval))
+    },
+    changeEngine() {
+      this.intervalSeconds = this.engine === 'yolo' ? this.yoloIntervalSeconds : Math.max(this.minRequestIntervalSeconds, this.visionIntervalSeconds)
+      this.ensureIntervalOption(this.intervalSeconds)
+      this.resetResultState()
     },
     scheduleNextAnalysis(delayMs) {
       if (!this.running || this._isBeingDestroyed) return
@@ -334,6 +476,7 @@ export default {
         const frame = await this.normalizeFrame(rawFrame)
         if (generation !== this.requestGeneration) return
         const response = await analyzeVideoFrame({
+          engine: this.engine,
           channelId: this.selectedChannelId,
           channelName: this.selectedChannelName,
           imageData: frame.dataUrl,
@@ -342,13 +485,15 @@ export default {
           capturedAt: new Date().toISOString()
         })
         if (generation !== this.requestGeneration || !response || !response.data) return
-        this.latestFrame = frame
-        this.latestResult = response.data
+        if (!silent) this.clearHistorySelection()
+        this.updateLiveResult(frame, response.data)
         await this.loadHistory(1, generation, response.data.analysisId)
       } catch (error) {
+        if (generation !== this.requestGeneration) return
+        this.clearLiveResult()
         const message = this.errorMessage(error)
         if (!silent || this.running) this.$message.error('AI 识别失败：' + message)
-        if (this.running && /未配置|未启用|401|403/.test(message)) this.stopAnalysis(false)
+        if (this.running && /未配置|未启用|401|403/.test(message)) this.stopAnalysis(false, false)
       } finally {
         this.analyzing = false
       }
@@ -387,7 +532,7 @@ export default {
         image.src = frame.dataUrl
       })
     },
-    async loadHistory(page = 1, generation = this.requestGeneration, preferredAnalysisId = '') {
+    async loadHistory(page = 1, generation = this.requestGeneration, preferredAnalysisId = '', selectFirst = true) {
       if (!this.selectedChannelId) return
       const historyRequestId = ++this.historyRequestId
       this.historyLoading = true
@@ -421,11 +566,11 @@ export default {
         this.historyPageSize = Number(data.pageSize) || 10
         this.historyTotal = Number(data.total) || 0
         const selected = nextHistory.find(item => item.analysisId === preferredAnalysisId) || nextHistory[0]
+        if (!selectFirst || this.selectedHistoryAnalysisId || (this.running && this.engine === 'yolo')) return
         if (selected) {
-          this.selectHistory(selected)
+          this.selectHistory(selected, false)
         } else {
-          this.latestFrame = null
-          this.latestResult = null
+          this.clearLiveResult()
         }
       } catch (error) {
         if (generation === this.requestGeneration && historyRequestId === this.historyRequestId) {
@@ -442,20 +587,60 @@ export default {
       const milliseconds = Number(value)
       this.currentVideoTimeMs = Number.isFinite(milliseconds) && milliseconds >= 0 ? milliseconds : null
     },
-    selectHistory(item) {
-      if (!item) return
-      this.latestFrame = { dataUrl: item.imageObjectUrl || item.imageUrl }
+    updateLiveResult(frame, result) {
+      this.latestLiveFrame = frame
+      this.latestLiveResult = result
+      if (!this.selectedHistoryAnalysisId) {
+        this.latestFrame = frame
+        this.latestResult = result
+      }
+    },
+    clearLiveResult() {
+      this.updateLiveResult(null, null)
+    },
+    clearHistorySelection(retainedImageUrl = '') {
+      const previousUrl = this.pinnedHistoryImageUrl
+      this.selectedHistoryAnalysisId = ''
+      this.pinnedHistoryImageUrl = ''
+      if (previousUrl && previousUrl !== retainedImageUrl && previousUrl.indexOf('blob:') === 0 &&
+          !this.history.some(item => item.imageObjectUrl === previousUrl)) {
+        URL.revokeObjectURL(previousUrl)
+      }
+    },
+    returnToLive() {
+      this.clearHistorySelection()
+      this.latestFrame = this.latestLiveFrame
+      this.latestResult = this.latestLiveResult
+    },
+    resetResultState() {
+      this.clearHistorySelection()
+      this.clearLiveResult()
+    },
+    selectHistory(item, pin = true) {
+      if (!item || !item.analysisId) return
+      const imageUrl = item.imageObjectUrl || item.imageUrl
+      this.clearHistorySelection(imageUrl)
+      if (pin !== false) {
+        this.selectedHistoryAnalysisId = item.analysisId
+        this.pinnedHistoryImageUrl = imageUrl || ''
+      }
+      this.latestFrame = { dataUrl: imageUrl }
       this.latestResult = item
     },
     revokeHistoryUrls(items = this.history) {
       for (const item of items || []) {
-        if (item && item.imageObjectUrl && item.imageObjectUrl.indexOf('blob:') === 0) {
+        if (item && item.imageObjectUrl && item.imageObjectUrl !== this.pinnedHistoryImageUrl && item.imageObjectUrl.indexOf('blob:') === 0) {
           URL.revokeObjectURL(item.imageObjectUrl)
         }
       }
     },
     historyRowClass({ row }) {
-      return this.latestResult && row.analysisId === this.latestResult.analysisId ? 'selected-history-row' : ''
+      return row.analysisId === this.selectedHistoryAnalysisId ? 'selected-history-row' : ''
+    },
+    detectionBoxClass(box) {
+      if (box.kind === 'object') return 'object-box'
+      if (box.kind === 'unknown') return 'unknown-box'
+      return box.status === '自动告警' ? 'alert-box' : 'review-box'
     },
     boxStyle(box, result) {
       const width = result.imageWidth || 1
@@ -596,6 +781,12 @@ export default {
   justify-content: flex-end;
 }
 
+.engine-select { width: 170px; }
+.engine-note { padding: 7px 12px; font-size: 12px; color: #606266; background: #f4f8fc; }
+.task-error { display: block; color: #b45309; }
+.detection-count { font-size: 12px; color: #606266; line-height: 1.5; }
+.detection-tag { margin: 0 5px 5px 0; }
+
 .player-select {
   width: 110px;
 }
@@ -664,6 +855,13 @@ export default {
   font-size: 16px;
 }
 
+.result-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .result-header p,
 .history-title span {
   margin: 4px 0 0;
@@ -699,6 +897,11 @@ export default {
   min-width: 3px;
   min-height: 3px;
 }
+
+.object-box { border-color: #1677ff; }
+.object-box span { background: #1677ff; }
+.unknown-box { border-color: #909399; }
+.unknown-box span { background: #909399; }
 
 .risk-box span {
   position: absolute;

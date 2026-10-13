@@ -1,0 +1,9 @@
+ARG JAVA_IMAGE
+FROM ${JAVA_IMAGE}
+ARG BUILD_REVISION=unknown
+LABEL org.opencontainers.image.source="https://github.com/hqzyai/gb28181" \
+      org.opencontainers.image.revision="${BUILD_REVISION}"
+WORKDIR /opt/wvp
+COPY target/wvp-pro-*.jar /opt/wvp/wvp.jar
+USER 1001:1001
+ENTRYPOINT ["java", "-Xms512m", "-Xmx2048m", "-XX:+ExitOnOutOfMemoryError", "-jar", "/opt/wvp/wvp.jar", "--spring.config.location=file:/opt/wvp/application.yml"]

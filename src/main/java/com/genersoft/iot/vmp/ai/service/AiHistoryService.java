@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.ai.service;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.ai.bean.AiAnalysisResult;
 import com.genersoft.iot.vmp.ai.bean.AiChannelContext;
 import com.genersoft.iot.vmp.ai.bean.AiDetection;
@@ -45,7 +47,7 @@ public class AiHistoryService {
         AiChannelContext channel = requireChannel(channelId);
         ImagePayload image = decodeDataUrl(request.getImageData());
         applyChannelContext(result, channel, null);
-        result.setSource("LIVE");
+        if (!"BACKGROUND".equals(result.getSource())) result.setSource("LIVE");
         return persist(result, image.bytes(), image.contentType(), actor);
     }
 
@@ -148,7 +150,14 @@ public class AiHistoryService {
         entity.setConfidence(clampConfidence(result.getConfidence()));
         entity.setSummary(optional(result.getSummary(), 10_000));
         entity.setTipsJson(JSON.toJSONString(result.getTips() == null ? List.of() : result.getTips()));
-        entity.setDetectionsJson(JSON.toJSONString(result.getDetections() == null ? List.of() : result.getDetections()));
+        JSONObject envelope = new JSONObject();
+        envelope.put("schemaVersion", 2);
+        envelope.put("engine", result.getEngine());
+        envelope.put("modelVersion", result.getModelVersion());
+        envelope.put("modelSha256", result.getModelSha256());
+        envelope.put("frameId", result.getFrameId());
+        envelope.put("detections", result.getDetections() == null ? List.of() : result.getDetections());
+        entity.setDetectionsJson(envelope.toJSONString());
         entity.setInputTokens(Math.max(0, result.getInputTokens()));
         entity.setOutputTokens(Math.max(0, result.getOutputTokens()));
         entity.setTotalTokens(Math.max(0, result.getTotalTokens()));
@@ -178,6 +187,17 @@ public class AiHistoryService {
         result.setSummary(entity.getSummary());
         result.setTips(parseTips(entity.getTipsJson()));
         result.setDetections(parseDetections(entity.getDetectionsJson()));
+        try {
+            Object payload = JSON.parse(entity.getDetectionsJson());
+            if (payload instanceof JSONObject envelope) {
+                result.setEngine(envelope.getString("engine"));
+                result.setModelVersion(envelope.getString("modelVersion"));
+                result.setModelSha256(envelope.getString("modelSha256"));
+                result.setFrameId(envelope.getString("frameId"));
+            } else {
+                result.setEngine("vision"); result.setModelVersion(entity.getModel());
+            }
+        } catch (RuntimeException ignored) { result.setEngine("vision"); }
         result.setInputTokens(entity.getInputTokens());
         result.setOutputTokens(entity.getOutputTokens());
         result.setTotalTokens(entity.getTotalTokens());
@@ -197,11 +217,20 @@ public class AiHistoryService {
 
     private List<AiDetection> parseDetections(String json) {
         try {
-            return json == null || json.isBlank() ? List.of() : JSON.parseArray(json, AiDetection.class);
+            if (json == null || json.isBlank()) return List.of();
+            Object payload = JSON.parse(json);
+            if (payload instanceof JSONArray array) return array.toJavaList(AiDetection.class);
+            if (payload instanceof JSONObject envelope && envelope.getJSONArray("detections") != null)
+                return envelope.getJSONArray("detections").toJavaList(AiDetection.class);
+            return List.of();
         } catch (RuntimeException ex) {
             log.warn("Invalid AI history detections JSON", ex);
             return new ArrayList<>();
         }
+    }
+
+    public void attachChannelContext(AiAnalysisResult result, int channelId) {
+        applyChannelContext(result, requireChannel(channelId), null);
     }
 
     private void applyChannelContext(AiAnalysisResult result, AiChannelContext channel, String siteNameOverride) {

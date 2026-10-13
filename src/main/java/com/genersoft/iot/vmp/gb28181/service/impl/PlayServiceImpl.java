@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -29,6 +32,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
@@ -58,6 +62,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,6 +72,10 @@ import java.util.Vector;
 @Slf4j
 @Service("playService")
 public class PlayServiceImpl implements IPlayService {
+
+    // Locator cache only, never a fabricated SIP dialog. Warm reuse queries one exact media source.
+    private final Cache<String, String> existingPlayNodeIds = Caffeine.newBuilder()
+            .maximumSize(1000).expireAfterAccess(Duration.ofMinutes(10)).build();
 
     @Autowired
     private ISIPCommander cmder;
@@ -295,6 +304,11 @@ public class PlayServiceImpl implements IPlayService {
         // 判断设备是否属于当前平台, 如果不属于则发起自动调用
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
+            return;
+        }
+        StreamInfo existing = findExistingPlayStream(device, channel);
+        if (existing != null) {
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), existing);
             return;
         }
         MediaServer mediaServerItem = getNewMediaServerItem(device);
@@ -1669,16 +1683,25 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
 
+        StreamInfo existing = findExistingPlayStream(device, deviceChannel);
+        if (existing != null) {
+            byte[] snapshot = mediaServerService.getSnap(existing.getMediaServer(), MediaStreamUtil.RTP_APP,
+                    existing.getStream(), 15, 1, null, null);
+            errorCallback.run(snapshot == null || snapshot.length == 0 ? InviteErrorCode.FAIL.getCode() : InviteErrorCode.SUCCESS.getCode(),
+                    snapshot == null || snapshot.length == 0 ? "已存在媒体流抓拍失败" : InviteErrorCode.SUCCESS.getMsg(), snapshot);
+            return;
+        }
         play(device, deviceChannel, (code, msg, data)->{
-            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                InviteInfo inviteInfoForPlay = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
-                if (inviteInfoForPlay != null && inviteInfoForPlay.getStreamInfo() != null) {
-                    byte[] snapByteArray = mediaServerService.getSnap(data.getMediaServer(), MediaStreamUtil.RTP_APP,  data.getStream(), 15, 1, null, null);
-                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapByteArray);
-                }else {
-                    errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
-                }
-            }else {
+            if (code == InviteErrorCode.SUCCESS.getCode() && data != null && data.getMediaServer() != null
+                    && MediaStreamUtil.RTP_APP.equals(data.getApp())
+                    && String.format("%s_%s", device.getDeviceId(), deviceChannel.getDeviceId()).equals(data.getStream())) {
+                // A concurrent viewer may have made the exact source reusable between the two lookups.
+                // Use the real successful callback StreamInfo; it need not have a fabricated Redis Invite.
+                byte[] snapshot = mediaServerService.getSnap(data.getMediaServer(), MediaStreamUtil.RTP_APP,
+                        data.getStream(), 15, 1, null, null);
+                errorCallback.run(snapshot == null || snapshot.length == 0 ? InviteErrorCode.FAIL.getCode() : InviteErrorCode.SUCCESS.getCode(),
+                        snapshot == null || snapshot.length == 0 ? "媒体流抓拍失败" : InviteErrorCode.SUCCESS.getMsg(), snapshot);
+            } else {
                 errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
             }
         });
@@ -1758,7 +1781,14 @@ public class PlayServiceImpl implements IPlayService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-
+        if (deviceChannel == null) {
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "source channel not found");
+        }
+        StreamInfo existing = findExistingPlayStream(device, deviceChannel);
+        if (existing != null) {
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), existing);
+            return;
+        }
         MediaServer mediaServerItem = getNewMediaServerItem(device);
         if (mediaServerItem == null) {
             log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), deviceChannel.getDeviceId());
@@ -1766,6 +1796,58 @@ public class PlayServiceImpl implements IPlayService {
         }
         play(mediaServerItem, device, deviceChannel, null, record, callback);
 
+    }
+
+    /**
+     * WVP can restart while ZLM and an existing viewer keep the same RTP publisher alive.
+     * Reuse that exact live source before opening a duplicate logical stream. SIP state is not invented.
+     */
+    StreamInfo findExistingPlayStream(Device device, DeviceChannel channel) {
+        if (device == null || channel == null || !userSetting.getServerId().equals(device.getServerId())) return null;
+        InviteInfo invite = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+        if (invite != null && invite.getStreamInfo() != null) return null; // Normal warm SIP path already owns its source.
+        String stream = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
+        String cachedNodeId = existingPlayNodeIds.getIfPresent(stream);
+        if (cachedNodeId != null) {
+            StreamInfo cached = readExistingPlayStream(mediaServerService.getOne(cachedNodeId), device, channel, stream);
+            if (cached != null) return cached;
+            existingPlayNodeIds.invalidate(stream);
+        }
+        List<MediaServer> nodes = mediaServerService.getAllOnlineList();
+        if (nodes == null) return null;
+        for (MediaServer node : nodes) {
+            if (node == null || node.getId() == null || node.getId().equals(cachedNodeId)) continue;
+            StreamInfo existing = readExistingPlayStream(node, device, channel, stream);
+            if (existing != null) {
+                existingPlayNodeIds.put(stream, node.getId());
+                deviceChannelService.startPlay(channel.getId(), stream);
+                log.info("[点播复用已存在媒体] device={}, channel={}, media={}, stream={}",
+                        device.getDeviceId(), channel.getDeviceId(), node.getId(), stream);
+                return existing;
+            }
+        }
+        return null;
+    }
+
+    private StreamInfo readExistingPlayStream(MediaServer node, Device device, DeviceChannel channel, String stream) {
+        if (node == null || !node.isStatus()) return null;
+        String assigned = device.getMediaServerId();
+        if (!ObjectUtils.isEmpty(assigned) && !"auto".equals(assigned) && !assigned.equals(node.getId())) return null;
+        // getMediaInfo is an exact RTSP source query, not a full getMediaList scan.
+        MediaInfo media = mediaServerService.getMediaInfo(node, MediaStreamUtil.RTP_APP, stream);
+        if (!isExistingCameraRtp(media, stream)) return null;
+        StreamInfo info = mediaServerService.getStreamInfoByAppAndStream(node, MediaStreamUtil.RTP_APP, stream, media, media.getCallId());
+        if (info == null || !MediaStreamUtil.RTP_APP.equals(info.getApp()) || !stream.equals(info.getStream())) return null;
+        info.setDeviceId(device.getDeviceId());
+        info.setChannelId(channel.getId());
+        return info;
+    }
+
+    static boolean isExistingCameraRtp(MediaInfo media, String stream) {
+        return media != null && MediaStreamUtil.RTP_APP.equals(media.getApp()) && stream.equals(media.getStream())
+                && Integer.valueOf(OriginType.RTP_PUSH.ordinal()).equals(media.getOriginType())
+                && !Boolean.FALSE.equals(media.getOnline())
+                && (media.getSchema() == null || "rtsp".equalsIgnoreCase(media.getSchema()));
     }
 
     @Override

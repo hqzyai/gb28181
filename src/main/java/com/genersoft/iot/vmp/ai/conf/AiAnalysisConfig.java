@@ -30,6 +30,14 @@ public class AiAnalysisConfig {
     private double reviewThreshold = 0.60D;
     private double alertThreshold = 0.85D;
     private String historyDirectory = "data/ai-history";
+    private boolean yoloEnabled = false;
+    private String yoloUrl = "http://detector:8080";
+    private String yoloToken = "";
+    private double yoloConfidence = 0.35D;
+    private int yoloTimeoutSeconds = 20;
+    private String defaultEngine = "vision";
+    private int taskIntervalSeconds = 2;
+    private int taskHistoryIntervalSeconds = 30;
     private boolean demoEnabled = false;
     private String demoChannelName = "归林驿-东北角作业区";
     private String demoSiteName = "雄安湾生态基地";
@@ -38,6 +46,13 @@ public class AiAnalysisConfig {
     private String demoGuilinyiSyncChannelNameContains = "荷风驿,芳菲驿,云水驿,香澜驿";
     private String demoQingtengChannelNameContains = "青藤小镇";
     private String demoQingtengSiteName = "青藤小镇";
+
+    public boolean isYoloConfigured() {
+        return enabled && yoloEnabled && yoloUrl != null && !yoloUrl.isBlank()
+                && yoloToken != null && !yoloToken.isBlank()
+                && yoloConfidence >= 0.01D && yoloConfidence <= 0.99D
+                && yoloTimeoutSeconds >= 1 && yoloTimeoutSeconds <= 120;
+    }
 
     public boolean isConfigured() {
         return enabled
